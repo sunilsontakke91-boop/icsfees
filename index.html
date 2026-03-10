@@ -1,0 +1,3098 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICS Computers - Fees Management System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&family=Bebas+Neue&family=Oswald:wght@600;700&display=swap');
+
+        :root {
+            --bg-body: #e8e2d9;
+            --bg-panel: #f5f0e8;
+            --bg-panel-alt: #faf7f2;
+            --header-bg: #1a3a4a;
+            --header-accent: #c8732a;
+            --panel-header-bg: #1e4d5e;
+            --primary: #1e4d5e;
+            --primary-light: #2a6d84;
+            --accent: #c8732a;
+            --accent-light: #e8893a;
+            --success: #2d6a4f;
+            --danger: #8b2a2a;
+            --warning-bg: #d4a843;
+            --info: #1a6b7a;
+            --text-dark: #1c2b30;
+            --text-mid: #4a5568;
+            --text-light: #7a8a92;
+            --border: #d0c8bc;
+            --shadow: rgba(26, 58, 74, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-body);
+            background-image:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+                radial-gradient(ellipse at 20% 10%, rgba(200, 115, 42, 0.08) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 90%, rgba(30, 77, 94, 0.1) 0%, transparent 55%),
+                linear-gradient(160deg, #ede6db 0%, #ddd5c8 50%, #e4ddd2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, #0f2a35 0%, #1a3a4a 45%, #1e4d5e 100%);
+            color: white;
+            padding: 28px 32px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 40px rgba(10, 30, 40, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 60px,
+                rgba(255,255,255,0.015) 60px,
+                rgba(255,255,255,0.015) 61px
+            );
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.4em;
+            margin-bottom: 6px;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .header h1 span { color: var(--accent-light); }
+
+        .header p {
+            opacity: 0.85;
+            font-size: 1.05em;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* ── PANELS ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+                var(--bg-panel);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: -25px -25px 20px -25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .panel-header h2 {
+            font-size: 1.2em;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── FORM ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .required {
+            color: var(--danger);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.97em;
+            transition: all 0.25s;
+            background: #fdfaf6;
+            color: var(--text-dark);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(30, 77, 94, 0.12);
+            background: #fff;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.97em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(30, 77, 94, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(45, 106, 79, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #8b2a2a 0%, #b03a3a 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(139, 42, 42, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #b87c1a 0%, #d4a843 100%);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(184, 124, 26, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #1a6b7a 0%, #1e8fa4 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(26, 107, 122, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.22);
+        }
+
+        .btn-small {
+            padding: 5px 11px;
+            font-size: 0.82em;
+        }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%);
+            color: white;
+            padding: 22px 18px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(10, 30, 40, 0.25);
+            border-bottom: 3px solid rgba(200, 115, 42, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 80px; height: 80px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+        .stat-card.green {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+            border-bottom-color: rgba(64, 145, 108, 0.7);
+        }
+
+        .stat-card.red {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, #5c1a1a 0%, #8b2a2a 100%);
+            border-bottom-color: rgba(176, 58, 58, 0.7);
+        }
+
+        .stat-card.yellow {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+                linear-gradient(135deg, #7a4f10 0%, #c8732a 100%);
+            color: #fff;
+            border-bottom-color: rgba(232, 137, 58, 0.7);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 10px 0 5px;
+            font-family: 'Oswald', 'DM Sans', sans-serif;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
+        }
+
+        .stat-label {
+            font-size: 0.82em;
+            opacity: 0.85;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* ── SEARCH ── */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            background: #fdfaf6;
+            color: var(--text-dark);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(30, 77, 94, 0.1);
+        }
+
+        /* ── TABLE ── */
+        .table-wrapper {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                var(--bg-panel-alt);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.7);
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .students-table th {
+            background: linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%);
+            color: white;
+            padding: 13px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .students-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0d8cc;
+            color: var(--text-dark);
+        }
+
+        .students-table tr:nth-child(even) td {
+            background: rgba(200, 115, 42, 0.04);
+        }
+
+        .students-table tr:hover td {
+            background: rgba(30, 77, 94, 0.06);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 13px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #c8e6d4;
+            color: #1b4332;
+            border: 1px solid #a8d5b5;
+        }
+
+        .badge-warning {
+            background: #fde8c3;
+            color: #7a4f10;
+            border: 1px solid #f5cc84;
+        }
+
+        .badge-danger {
+            background: #f5cece;
+            color: #5c1a1a;
+            border: 1px solid #e8aaaa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .balance-display {
+            background: rgba(30, 77, 94, 0.06);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .balance-display h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .balance-amount {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--text-dark);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 25, 35, 0.75);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                var(--bg-panel);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(10, 25, 35, 0.4);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-close {
+            background: linear-gradient(135deg, #8b2a2a, #b03a3a);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            filter: brightness(1.1);
+        }
+
+        .payment-history {
+            margin-top: 20px;
+        }
+
+        .payment-item {
+            background: rgba(30, 77, 94, 0.06);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--success);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-box {
+            background: rgba(30, 77, 94, 0.07);
+            border-left: 4px solid var(--primary);
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* ══════════════════════════════════════
+           LOGIN SCREEN
+        ══════════════════════════════════════ */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+                linear-gradient(160deg, #0c2030 0%, #1a3a4a 45%, #0f2535 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+                linear-gradient(160deg, #f5f0e8 0%, #ede5d8 100%);
+            border-radius: 20px;
+            padding: 44px 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.6);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+        }
+        .login-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        .login-logo span { color: var(--accent); }
+        .login-subtitle {
+            color: var(--text-mid);
+            font-size: 0.85em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .login-divider {
+            width: 60px; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            margin: 14px auto 28px;
+            border-radius: 2px;
+        }
+        .login-icon-wrap {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2em;
+            margin: 0 auto 22px;
+            box-shadow: 0 8px 24px rgba(30,77,94,0.35);
+            border: 3px solid rgba(255,255,255,0.5);
+        }
+        .login-label {
+            display: block;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.82em;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-dark);
+            margin-bottom: 7px;
+        }
+        .login-input-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 13px 44px 13px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.05em;
+            background: #fdfaf6;
+            color: var(--text-dark);
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.25s;
+            letter-spacing: 2px;
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(30, 77, 94, 0.14);
+            background: #fff;
+        }
+        .login-eye {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.1em;
+            color: var(--text-mid);
+            user-select: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05em;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.25s;
+            box-shadow: 0 5px 18px rgba(30,77,94,0.35);
+            margin-top: 6px;
+            border-bottom: 3px solid rgba(0,0,0,0.2);
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(30,77,94,0.45);
+            filter: brightness(1.07);
+        }
+        .login-error {
+            background: #fce8e8;
+            border: 1px solid #e8aaaa;
+            color: #5c1a1a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88em;
+            margin-bottom: 14px;
+            display: none;
+            font-weight: 500;
+        }
+        .login-footer {
+            margin-top: 22px;
+            font-size: 0.78em;
+            color: var(--text-light);
+            letter-spacing: 0.5px;
+        }
+        .login-attempts {
+            font-size: 0.82em;
+            color: var(--accent);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* ══════════════════════════════════════
+           EXPIRY WARNING BANNER
+        ══════════════════════════════════════ */
+        #expiryBanner {
+            display: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 18px;
+            font-weight: 600;
+            font-size: 0.93em;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid;
+        }
+        #expiryBanner.warn-yellow {
+            background: #fff8e6;
+            border-color: #f5cc84;
+            color: #7a4f10;
+        }
+        #expiryBanner.warn-orange {
+            background: #fff0e0;
+            border-color: #e8893a;
+            color: #7a3510;
+        }
+        #expiryBanner.warn-red {
+            background: #fce8e8;
+            border-color: #e8aaaa;
+            color: #5c1a1a;
+        }
+
+        /* ══════════════════════════════════════
+           EXPIRED SCREEN
+        ══════════════════════════════════════ */
+        #expiredScreen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, #1a0a0a 0%, #3a1010 100%);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            flex-direction: column;
+            text-align: center;
+        }
+        .expired-card {
+            background: linear-gradient(160deg, #2a0808 0%, #3d1010 100%);
+            border: 2px solid rgba(200,50,50,0.4);
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 480px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+        }
+        .expired-icon { font-size: 4em; margin-bottom: 16px; }
+        .expired-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2em;
+            color: #ff6b6b;
+            margin-bottom: 12px;
+        }
+        .expired-msg { color: #ffaaaa; line-height: 1.7; margin-bottom: 24px; }
+        .expired-contact {
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 16px 20px;
+            color: #ffcccc;
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+
+        /* ══════════════════════════════════════
+           ADMIN SETTINGS MODAL
+        ══════════════════════════════════════ */
+        .admin-panel-btn {
+            position: fixed;
+            bottom: 22px; right: 22px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            font-size: 1.4em;
+            cursor: pointer;
+            box-shadow: 0 6px 22px rgba(30,77,94,0.45);
+            z-index: 800;
+            transition: all 0.25s;
+            border: 2px solid rgba(255,255,255,0.25);
+        }
+        .admin-panel-btn:hover {
+            transform: translateY(-3px) rotate(15deg);
+            box-shadow: 0 10px 30px rgba(30,77,94,0.55);
+        }
+
+        .settings-section {
+            background: rgba(30, 77, 94, 0.06);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(30,77,94,0.12);
+        }
+        .settings-section h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary);
+            font-size: 1em;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .expiry-status-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            font-size: 0.88em;
+        }
+        .expiry-status-bar .label { color: var(--text-mid); }
+        .expiry-status-bar .value {
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+        .value.ok { color: var(--success); }
+        .value.warn { color: var(--accent); }
+        .value.danger { color: var(--danger); }
+
+        /* Header right area for logout */
+        .header-actions {
+            position: absolute;
+            top: 18px; right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-user-badge {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .logout-btn {
+            background: rgba(200,115,42,0.25);
+            border: 1px solid rgba(200,115,42,0.5);
+            color: #e8893a;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            background: rgba(200,115,42,0.4);
+            color: #ffaa60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 id="headerTitle">🎓 ICS <span>COMPUTERS</span></h1>
+            <p id="headerSubtitle">Fees Management System — Yeola, Nashik</p>
+            <div class="header-actions">
+                <span class="header-user-badge" id="headerUserBadge">👤 Admin</span>
+                <button class="logout-btn" onclick="logoutNow()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Expiry Warning Banner -->
+        <div id="expiryBanner"></div>
+
+        <!-- Statistics Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value" id="totalStudents">0</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Total Collected</div>
+                <div class="stat-value" id="totalCollected">₹0</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-label">Total Pending</div>
+                <div class="stat-value" id="totalPending">₹0</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-label">This Month</div>
+                <div class="stat-value" id="monthCollection">₹0</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Add Student Form -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>➕ Add New Student</h2>
+                </div>
+
+                <div class="info-box">
+                    📌 Fill all details to add new student
+                </div>
+
+                <form id="studentForm">
+                    <div class="form-group">
+                        <label>Receipt Number <span class="required">*</span></label>
+                        <input type="number" id="receiptNo" placeholder="Receipt number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student Name <span class="required">*</span></label>
+                        <input type="text" id="studentName" placeholder="Enter full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile Number <span class="required">*</span></label>
+                        <input type="tel" id="mobileNo" placeholder="10-digit number" maxlength="10" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Course <span class="required">*</span></label>
+                        <select id="course" required>
+                            <option value="">Select Course</option>
+                            <option value="MS-CIT">MS-CIT</option>
+                            <option value="Tally">Tally</option>
+                            <option value="Typing">Typing</option>
+                            <option value="Graphics">Graphics</option>
+                            <option value="Coding">Coding</option>
+                            <option value="Advanced Excel">Advanced Excel</option>
+                            <option value="DTP">DTP</option>
+                            <option value="Custom">Custom Course</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Fees <span class="required">*</span></label>
+                            <input type="number" id="totalFees" placeholder="₹" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Paid Fees</label>
+                            <input type="number" id="paidFees" placeholder="₹" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="balance-display">
+                        <h3>Balance Fees</h3>
+                        <div class="balance-amount" id="balanceAmount">₹0</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        ✅ Add Student
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>⚡ Quick Actions</h2>
+                </div>
+
+                <div style="display: grid; gap: 15px;">
+                    <button class="btn btn-success" onclick="exportToExcel()">
+                        📊 Export to Excel
+                    </button>
+                    <button class="btn" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; border-bottom: 3px solid #a78bfa; box-shadow: 0 4px 15px rgba(124,58,237,0.3);" onclick="exportToTally()">
+                        📥 Export to Tally (XML)
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        🗑️ Clear All Data
+                    </button>
+                    <button class="btn" style="background: linear-gradient(135deg, #6b1a1a 0%, #a02020 100%); color: white; border-bottom: 3px solid #e05555; box-shadow: 0 4px 15px rgba(160,32,32,0.35);" onclick="clearAndResetStorage()">
+                        🔄 Clear &amp; Reset Storage
+                    </button>
+                    <button class="btn" style="background: linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%); color: white; border-bottom: 3px solid #c8732a;" onclick="openGenerateReportModal()">
+                        📋 Generate Report
+                    </button>
+
+                    <div style="border-top: 2px dashed var(--border); margin: 5px 0;"></div>
+
+                    <button class="btn" style="background: linear-gradient(135deg, #2d5016 0%, #4a7c22 100%); color: white; border-bottom: 3px solid #8bc34a;" onclick="backupData()">
+                        💾 Backup Data (JSON)
+                    </button>
+                    <button class="btn" style="background: linear-gradient(135deg, #1a3060 0%, #2d4fa8 100%); color: white; border-bottom: 3px solid #7b9ef0;" onclick="document.getElementById('restoreFileInput').click()">
+                        📂 Restore Data (JSON)
+                    </button>
+                    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreData(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search by name, mobile, or course...">
+            <button class="btn btn-primary" onclick="searchStudents()">Search</button>
+            <button class="btn btn-info" onclick="showAllStudents()">Show All</button>
+        </div>
+
+        <!-- Students Table -->
+        <div class="table-wrapper">
+            <table class="students-table">
+                <thead>
+                    <tr>
+                        <th>Receipt No.</th>
+                        <th>Student Name</th>
+                        <th>Mobile</th>
+                        <th>Course</th>
+                        <th>Total Fees</th>
+                        <th>Paid Fees</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <div style="font-size: 3em;">📚</div>
+                            <p>No students added yet. Add your first student!</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Generate Report Modal -->
+    <div class="modal" id="generateReportModal" style="display:none;">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%); color: white; padding: 18px 20px; border-radius: 10px 10px 0 0; margin: -30px -30px 25px -30px; border-bottom: 3px solid #c8732a;">
+                <h2 style="color:white; font-size:1.2em; font-family:'Playfair Display',serif;">📋 Generate Report</h2>
+                <button class="modal-close" onclick="closeGenerateReportModal()">&#215;</button>
+            </div>
+
+            <div style="margin-bottom: 18px; background:rgba(30,77,94,0.07); border-left:4px solid #1e4d5e; padding:11px 14px; border-radius:6px; font-size:0.93em; color:#1a3a4a; font-weight:500;">
+                📅 Select date range and report type to generate a PDF report.
+            </div>
+
+            <div class="form-group">
+                <label>Report Type <span class="required">*</span></label>
+                <select id="reportType" onchange="onReportTypeChange()">
+                    <option value="custom">Custom Date Range</option>
+                    <option value="daily">Today\'s Report</option>
+                    <option value="weekly">This Week</option>
+                    <option value="monthly">This Month</option>
+                    <option value="yearly">This Year</option>
+                </select>
+            </div>
+
+            <div id="customDateRange">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>From Date <span class="required">*</span></label>
+                        <input type="date" id="reportFromDate">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date <span class="required">*</span></label>
+                        <input type="date" id="reportToDate">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Filter by Status</label>
+                <select id="reportStatusFilter">
+                    <option value="all">All Students</option>
+                    <option value="paid">Fully Paid Only</option>
+                    <option value="partial">Partial Payment</option>
+                    <option value="pending">Pending Only</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Filter by Course</label>
+                <select id="reportCourseFilter">
+                    <option value="all">All Courses</option>
+                    <option value="MS-CIT">MS-CIT</option>
+                    <option value="Tally">Tally</option>
+                    <option value="Typing">Typing</option>
+                    <option value="Graphics">Graphics</option>
+                    <option value="Coding">Coding</option>
+                    <option value="Advanced Excel">Advanced Excel</option>
+                    <option value="DTP">DTP</option>
+                    <option value="Custom">Custom Course</option>
+                </select>
+            </div>
+
+            <button class="btn" style="width:100%; background: linear-gradient(135deg,#1a3a4a 0%,#1e4d5e 100%); color:white; margin-top:5px; border-bottom: 3px solid #c8732a;" onclick="generateReport()">
+                📄 Generate PDF Report
+            </button>
+        </div>
+    </div>
+
+        <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Add Payment</h2>
+                <button class="modal-close" onclick="closePaymentModal()">×</button>
+            </div>
+            <form id="paymentForm">
+                <input type="hidden" id="paymentStudentId">
+                
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <input type="text" id="paymentStudentName" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Balance</label>
+                    <input type="text" id="paymentBalance" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Amount <span class="required">*</span></label>
+                    <input type="number" id="paymentAmount" placeholder="₹" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Date</label>
+                    <input type="date" id="paymentDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%;">
+                    ✅ Add Payment
+                </button>
+            </form>
+
+            <div class="payment-history" id="paymentHistory"></div>
+        </div>
+    </div>
+
+<!-- ════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════ -->
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo" id="loginLogo">🎓 ICS <span>COMPUTERS</span></div>
+        <div class="login-subtitle" id="loginSubtitle">Fees Management System</div>
+        <div class="login-divider"></div>
+        <div class="login-icon-wrap">🔐</div>
+
+        <div class="login-error" id="loginError"></div>
+
+        <label class="login-label">Username</label>
+        <div class="login-input-wrap" style="margin-bottom:16px;">
+            <input type="text" class="login-input" id="loginUsernameInput"
+                placeholder="Enter username" autocomplete="username"
+                onkeydown="if(event.key==='Enter') document.getElementById('loginPasswordInput').focus()" />
+        </div>
+
+        <label class="login-label">Password</label>
+        <div class="login-input-wrap">
+            <input type="password" class="login-input" id="loginPasswordInput"
+                placeholder="Enter password" autocomplete="current-password"
+                onkeydown="if(event.key==='Enter') doLogin()" />
+            <span class="login-eye" id="loginEye" onclick="toggleLoginEye()">👁️</span>
+        </div>
+
+        <button class="login-btn" onclick="doLogin()">🔓 Login to System</button>
+
+        <div class="login-attempts" id="loginAttempts"></div>
+        <div class="login-footer">
+            Fees Management System · v3.0
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SOFTWARE EXPIRED SCREEN
+════════════════════════════════════════ -->
+<div id="expiredScreen">
+    <div class="expired-card">
+        <div class="expired-icon">🔒</div>
+        <div class="expired-title">Software Expired</div>
+        <div class="expired-msg">
+            Your ICS Fees Management Software license has expired.<br>
+            Please contact ICS Computers to renew your license.
+        </div>
+        <div class="expired-contact">
+            📞 <strong>Mb. 9822053668</strong><br>
+            📍 Near Old Nagar Palika, Yeola (Nashik)<br>
+            🎓 ICS COMPUTERS
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN SETTINGS MODAL
+════════════════════════════════════════ -->
+<button class="admin-panel-btn" onclick="openAdminSettings()" title="Admin Settings">⚙️</button>
+
+<div class="modal" id="adminSettingsModal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header" style="background: linear-gradient(135deg,#1a3a4a,#1e4d5e); color:white; padding:18px 20px; border-radius:10px 10px 0 0; margin:-30px -30px 25px -30px; border-bottom:3px solid #c8732a;">
+            <h2 style="color:white; font-size:1.2em; font-family:'Playfair Display',serif;">⚙️ Admin Settings</h2>
+            <button class="modal-close" onclick="closeAdminSettings()">×</button>
+        </div>
+
+        <!-- Current Expiry Status -->
+        <div class="settings-section">
+            <h3>📅 Software License Status</h3>
+            <div class="expiry-status-bar" style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="label">Current Expiry Date:</span>
+                <span class="value" id="currentExpiryDisplay">—</span>
+            </div>
+            <div class="expiry-status-bar" style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="label">Days Remaining:</span>
+                <span class="value" id="daysRemainingDisplay">—</span>
+            </div>
+        </div>
+
+        <!-- Set New Expiry Date -->
+        <div class="settings-section">
+            <h3>🔑 Set New Expiry Date</h3>
+            <div style="background:#fff8e6; border:1px solid #f5cc84; border-radius:8px; padding:10px 13px; margin-bottom:14px; font-size:0.85em; color:#7a4f10;">
+                ⚠️ Only authorized ICS admin can set expiry date. Super password required.
+            </div>
+            <div class="form-group">
+                <label>Super Admin Password <span class="required">*</span></label>
+                <div style="position:relative;">
+                    <input type="password" id="superPwdInput" class="form-group input"
+                        style="width:100%; padding:11px 42px 11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                        placeholder="Enter super admin password" />
+                    <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1em;" onclick="toggleSuperPwd()">👁️</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>New Expiry Date <span class="required">*</span></label>
+                <input type="date" id="newExpiryDate"
+                    style="width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;" />
+            </div>
+            <button class="btn btn-primary" onclick="setNewExpiry()" style="width:100%; margin-top:4px;">
+                💾 Save New Expiry Date
+            </button>
+        </div>
+
+        <!-- Change Login Password -->
+        <div class="settings-section">
+            <h3>🔒 Change Login Password</h3>
+            <div class="form-group">
+                <label>Super Admin Password <span class="required">*</span></label>
+                <input type="password" id="chgSuperPwd"
+                    style="width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                    placeholder="Enter super admin password" />
+            </div>
+            <div class="form-group">
+                <label>New Login Password <span class="required">*</span></label>
+                <input type="password" id="newLoginPwd"
+                    style="width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                    placeholder="Minimum 4 characters" />
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password <span class="required">*</span></label>
+                <input type="password" id="confirmNewPwd"
+                    style="width:100%; padding:11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                    placeholder="Re-enter new password" />
+            </div>
+            <button class="btn btn-success" onclick="changeLoginPassword()" style="width:100%; margin-top:4px;">
+                🔑 Update Password
+            </button>
+        </div>
+
+        <!-- User Management Section -->
+        <div class="settings-section">
+            <h3>👥 User Management</h3>
+            <div style="background:#e8f4f8; border:1px solid #a8d5e2; border-radius:8px; padding:10px 13px; margin-bottom:14px; font-size:0.85em; color:#1a3a4a;">
+                ℹ️ Super Admin can create multiple users with individual login credentials.
+            </div>
+
+            <!-- Add New User -->
+            <div style="background:white; border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:12px;">
+                <div style="font-weight:700; font-size:0.88em; color:var(--primary); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">➕ Add New User</div>
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label style="font-size:0.8em;">Super Admin Password <span class="required">*</span></label>
+                    <input type="password" id="umSuperPwd"
+                        style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                        placeholder="Enter super admin password" />
+                </div>
+                <div class="form-row" style="margin-bottom:10px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.8em;">Username <span class="required">*</span></label>
+                        <input type="text" id="umNewUsername"
+                            style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                            placeholder="e.g. staff1" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.8em;">Password <span class="required">*</span></label>
+                        <input type="password" id="umNewPassword"
+                            style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                            placeholder="Min 4 chars" />
+                    </div>
+                </div>
+                <div style="border-top:1px dashed var(--border); margin:10px 0 12px; padding-top:10px;">
+                    <div style="font-size:0.8em; font-weight:700; color:var(--primary); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">🏫 Center माहिती</div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label style="font-size:0.8em;">Center Name <span class="required">*</span></label>
+                        <input type="text" id="umCenterName"
+                            style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                            placeholder="e.g. ABC Computers" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label style="font-size:0.8em;">Address</label>
+                        <input type="text" id="umCenterAddress"
+                            style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                            placeholder="e.g. Near ST Stand, Manmad" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:0.8em;">Mobile No.</label>
+                        <input type="tel" id="umCenterMobile"
+                            style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;"
+                            placeholder="e.g. 9876543210" maxlength="10" />
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addNewUser()" style="width:100%; padding:9px; font-size:0.9em; margin-top:2px;">
+                    ✅ Create User
+                </button>
+            </div>
+
+            <!-- Export / Import Users -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                <button class="btn btn-success" onclick="exportUsers()" style="padding:9px; font-size:0.88em;">
+                    📤 Export Users
+                </button>
+                <label style="display:flex; align-items:center; justify-content:center; gap:6px; padding:9px; background:linear-gradient(135deg,#1a6b7a,#1e8fa4); color:white; border-radius:8px; font-size:0.88em; font-weight:600; cursor:pointer; box-shadow:0 3px 10px rgba(26,107,122,0.3);">
+                    📥 Import Users
+                    <input type="file" accept=".json" onchange="importUsers(event)" style="display:none;" />
+                </label>
+            </div>
+            <div style="background:#fff8e6; border:1px solid #f5cc84; border-radius:8px; padding:9px 12px; margin-bottom:14px; font-size:0.82em; color:#7a4f10;">
+                💡 <strong>दुसऱ्या PC वर users transfer करण्यासाठी:</strong><br>
+                1️⃣ इथून <strong>Export Users</strong> करा → <code>ics_users.json</code> download होईल<br>
+                2️⃣ HTML file सोबत हीच json file दुसऱ्या PC वर copy करा<br>
+                3️⃣ त्या PC वर <strong>Import Users</strong> करा → सर्व users येतील
+            </div>
+            <div id="userListContainer" style="max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; background:white;">
+                <!-- populated by renderUserList() -->
+            </div>
+        </div>
+
+        <button class="btn btn-danger" onclick="logoutNow()" style="width:100%;">
+            🚪 Logout
+        </button>
+    </div>
+</div>
+
+    <script>
+        // ══════════════════════════════════════════════════════════
+        //  AUTH & EXPIRY SYSTEM
+        // ══════════════════════════════════════════════════════════
+
+        // Super Admin password (hardcoded — only ICS owner knows this)
+        const SUPER_PASSWORD = 'ICS@9822';
+
+        // ── Multi-User System ──
+        // Force admin password to latest value on every load
+        (function forceAdminPassword() {
+            const ADMIN_PASSWORD = 'Ics@12671';
+            const stored = localStorage.getItem('icsUsers');
+            if (stored) {
+                const users = JSON.parse(stored);
+                const admin = users.find(u => u.role === 'admin' || u.username === 'admin');
+                if (admin && admin.password !== ADMIN_PASSWORD) {
+                    admin.password = ADMIN_PASSWORD;
+                    localStorage.setItem('icsUsers', JSON.stringify(users));
+                }
+            }
+            localStorage.setItem('icsLoginPwd', ADMIN_PASSWORD);
+        })();
+
+        function getUsers() {
+            const stored = localStorage.getItem('icsUsers');
+            if (stored) return JSON.parse(stored);
+            const defaults = [{ username: 'admin', password: 'Ics@12671', role: 'admin' }];
+            localStorage.setItem('icsUsers', JSON.stringify(defaults));
+            return defaults;
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('icsUsers', JSON.stringify(users));
+        }
+
+        // Legacy compat — for restore/clear password prompts
+        function getLoginPassword() {
+            const users = getUsers();
+            const admin = users.find(u => u.role === 'admin') || users[0];
+            return admin ? admin.password : 'Ics@12671';
+        }
+
+        // Track currently logged-in user
+        let currentLoggedInUser = null;
+
+        // Expiry date — stored in localStorage
+        // Default: 1 year from first run
+        function getExpiryDate() {
+            let exp = localStorage.getItem('icsSoftwareExpiry');
+            if (!exp) {
+                const d = new Date();
+                d.setFullYear(d.getFullYear() + 1);
+                exp = d.toISOString().split('T')[0];
+                localStorage.setItem('icsSoftwareExpiry', exp);
+            }
+            return exp;
+        }
+
+        function getDaysRemaining() {
+            const exp = new Date(getExpiryDate());
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            exp.setHours(0,0,0,0);
+            return Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+        }
+
+        // ── Login Attempts Tracking ──
+        let loginAttempts = 0;
+        const MAX_ATTEMPTS = 5;
+
+        function toggleLoginEye() {
+            const inp = document.getElementById('loginPasswordInput');
+            const eye = document.getElementById('loginEye');
+            if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+            else { inp.type = 'password'; eye.textContent = '👁️'; }
+        }
+
+        function doLogin() {
+            const usrInp = document.getElementById('loginUsernameInput');
+            const inp = document.getElementById('loginPasswordInput');
+            const errEl = document.getElementById('loginError');
+            const attEl = document.getElementById('loginAttempts');
+            const username = usrInp.value.trim();
+            const pwd = inp.value;
+
+            // Check expiry first
+            if (getDaysRemaining() <= 0) {
+                showExpiredScreen();
+                return;
+            }
+
+            // Validate credentials against user list
+            const users = getUsers();
+            const matchedUser = users.find(u => u.username === username && u.password === pwd);
+
+            if (matchedUser) {
+                loginAttempts = 0;
+                currentLoggedInUser = matchedUser;
+                document.getElementById('loginScreen').style.display = 'none';
+                inp.value = '';
+                usrInp.value = '';
+                errEl.style.display = 'none';
+                // Apply center branding
+                applyUserBranding(matchedUser);
+                // Show/hide admin settings button based on role
+                const adminBtn = document.querySelector('.admin-panel-btn');
+                if (adminBtn) adminBtn.style.display = matchedUser.role === 'admin' ? 'flex' : 'none';
+                showExpiryBanner();
+                updateAdminSettingsDisplay();
+            } else {
+                loginAttempts++;
+                inp.value = '';
+                const remaining = MAX_ATTEMPTS - loginAttempts;
+
+                if (loginAttempts >= MAX_ATTEMPTS) {
+                    errEl.textContent = '🔒 Too many failed attempts! Please try again after closing and reopening.';
+                    errEl.style.display = 'block';
+                    document.querySelector('.login-btn').disabled = true;
+                    document.querySelector('.login-btn').style.opacity = '0.5';
+                    attEl.textContent = '';
+                } else {
+                    errEl.textContent = '❌ Incorrect username or password! Access denied.';
+                    errEl.style.display = 'block';
+                    attEl.textContent = `⚠️ ${remaining} attempt${remaining > 1 ? 's' : ''} remaining`;
+                }
+            }
+        }
+
+        function logoutNow() {
+            if (!confirm('🚪 Logout from ICS Fees Management System?')) return;
+            document.getElementById('loginUsernameInput').value = '';
+            document.getElementById('loginPasswordInput').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginAttempts').textContent = '';
+            document.querySelector('.login-btn').disabled = false;
+            document.querySelector('.login-btn').style.opacity = '1';
+            loginAttempts = 0;
+            currentLoggedInUser = null;
+            resetBranding();
+            // Hide admin button on logout
+            const adminBtn = document.querySelector('.admin-panel-btn');
+            if (adminBtn) adminBtn.style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            closeAdminSettings();
+        }
+
+        // ── Expiry Banner ──
+        function showExpiryBanner() {
+            const days = getDaysRemaining();
+            const banner = document.getElementById('expiryBanner');
+            const expDate = getExpiryDate();
+            const formatted = new Date(expDate).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+
+            if (days <= 0) {
+                showExpiredScreen();
+                return;
+            } else if (days <= 7) {
+                banner.className = 'warn-red';
+                banner.style.display = 'flex';
+                banner.innerHTML = `🚨 <strong>CRITICAL:</strong> Software expires in <strong>${days} day${days!==1?'s':''}</strong> (${formatted})! Contact ICS: <strong>9822053668</strong>`;
+            } else if (days <= 15) {
+                banner.className = 'warn-orange';
+                banner.style.display = 'flex';
+                banner.innerHTML = `⚠️ <strong>Warning:</strong> Software license expires in <strong>${days} days</strong> (${formatted}). Please renew soon.`;
+            } else if (days <= 30) {
+                banner.className = 'warn-yellow';
+                banner.style.display = 'flex';
+                banner.innerHTML = `📅 <strong>Notice:</strong> Software license expires in <strong>${days} days</strong> (${formatted}).`;
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        function showExpiredScreen() {
+            const el = document.getElementById('expiredScreen');
+            el.style.display = 'flex';
+            document.getElementById('loginScreen').style.display = 'none';
+        }
+
+        // ── Admin Settings ──
+        function openAdminSettings() {
+            // Must be logged in (login screen hidden)
+            if (document.getElementById('loginScreen').style.display !== 'none') {
+                alert('⚠️ Please login first!');
+                return;
+            }
+            updateAdminSettingsDisplay();
+            renderUserList();
+            document.getElementById('adminSettingsModal').style.display = 'flex';
+        }
+
+        function closeAdminSettings() {
+            document.getElementById('adminSettingsModal').style.display = 'none';
+            // Clear sensitive inputs
+            ['superPwdInput','newExpiryDate','chgSuperPwd','newLoginPwd','confirmNewPwd','umSuperPwd','umNewUsername','umNewPassword'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
+        function updateAdminSettingsDisplay() {
+            const expDate = getExpiryDate();
+            const days = getDaysRemaining();
+            const formatted = new Date(expDate).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+
+            document.getElementById('currentExpiryDisplay').textContent = formatted;
+
+            const daysEl = document.getElementById('daysRemainingDisplay');
+            daysEl.textContent = days <= 0 ? 'EXPIRED' : `${days} day${days!==1?'s':''}`;
+            daysEl.className = 'value ' + (days <= 0 ? 'danger' : days <= 15 ? 'warn' : 'ok');
+        }
+
+        function toggleSuperPwd() {
+            const inp = document.getElementById('superPwdInput');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        }
+
+        function setNewExpiry() {
+            const superPwd = document.getElementById('superPwdInput').value;
+            const newDate = document.getElementById('newExpiryDate').value;
+
+            if (!superPwd) { alert('⚠️ Enter super admin password!'); return; }
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); document.getElementById('superPwdInput').value=''; return; }
+            if (!newDate) { alert('⚠️ Select a new expiry date!'); return; }
+
+            const today = new Date().toISOString().split('T')[0];
+            if (newDate <= today) { alert('⚠️ Expiry date must be in the future!'); return; }
+
+            localStorage.setItem('icsSoftwareExpiry', newDate);
+            const formatted = new Date(newDate).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+            alert(`✅ Software expiry date updated!\n\nNew Expiry: ${formatted}\nDays Remaining: ${getDaysRemaining()}`);
+
+            document.getElementById('superPwdInput').value = '';
+            document.getElementById('newExpiryDate').value = '';
+            updateAdminSettingsDisplay();
+            showExpiryBanner();
+        }
+
+        function changeLoginPassword() {
+            const superPwd = document.getElementById('chgSuperPwd').value;
+            const newPwd = document.getElementById('newLoginPwd').value;
+            const confirmPwd = document.getElementById('confirmNewPwd').value;
+
+            if (!superPwd) { alert('⚠️ Enter super admin password!'); return; }
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); document.getElementById('chgSuperPwd').value=''; return; }
+            if (!newPwd || newPwd.length < 4) { alert('⚠️ New password must be at least 4 characters!'); return; }
+            if (newPwd !== confirmPwd) { alert('❌ Passwords do not match!'); document.getElementById('confirmNewPwd').value=''; return; }
+
+            // Update the admin user's password in the users list
+            const users = getUsers();
+            const adminUser = users.find(u => u.role === 'admin');
+            if (adminUser) {
+                adminUser.password = newPwd;
+            } else {
+                users[0].password = newPwd;
+            }
+            saveUsers(users);
+            // Legacy compat key
+            localStorage.setItem('icsLoginPwd', newPwd);
+            alert('✅ Admin password changed successfully!\n\nNew password is active from next login.');
+            document.getElementById('chgSuperPwd').value = '';
+            document.getElementById('newLoginPwd').value = '';
+            document.getElementById('confirmNewPwd').value = '';
+            renderUserList();
+        }
+
+        // ── User Management Functions ──
+        function addNewUser() {
+            const superPwd = document.getElementById('umSuperPwd').value;
+            const username = document.getElementById('umNewUsername').value.trim().toLowerCase();
+            const password = document.getElementById('umNewPassword').value;
+            const centerName = document.getElementById('umCenterName').value.trim();
+            const centerAddress = document.getElementById('umCenterAddress').value.trim();
+            const centerMobile = document.getElementById('umCenterMobile').value.trim();
+
+            if (!superPwd) { alert('⚠️ Enter super admin password!'); return; }
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); document.getElementById('umSuperPwd').value=''; return; }
+            if (!username) { alert('⚠️ Username टाका!'); return; }
+            if (!/^[a-z0-9_]+$/.test(username)) { alert('⚠️ Username मध्ये फक्त letters, numbers, underscore वापरा.'); return; }
+            if (!password || password.length < 4) { alert('⚠️ Password किमान 4 अक्षरे असावे!'); return; }
+            if (!centerName) { alert('⚠️ Center Name टाका!'); return; }
+
+            const users = getUsers();
+            if (users.find(u => u.username === username)) {
+                alert('❌ Username "' + username + '" आधीच आहे! वेगळे username निवडा.');
+                return;
+            }
+
+            users.push({
+                username: username,
+                password: password,
+                role: 'user',
+                centerName: centerName,
+                centerAddress: centerAddress || '',
+                centerMobile: centerMobile || ''
+            });
+            saveUsers(users);
+            alert('✅ User "' + username + '" तयार झाला!\n\nCenter: ' + centerName + '\nते आता login करू शकतात.');
+            document.getElementById('umSuperPwd').value = '';
+            document.getElementById('umNewUsername').value = '';
+            document.getElementById('umNewPassword').value = '';
+            document.getElementById('umCenterName').value = '';
+            document.getElementById('umCenterAddress').value = '';
+            document.getElementById('umCenterMobile').value = '';
+            renderUserList();
+        }
+
+        // ── Branding: login नंतर user च्या Center नुसार UI बदलणे ──
+        function applyUserBranding(user) {
+            const isAdmin = user.role === 'admin';
+            const centerName = isAdmin ? 'ICS COMPUTERS' : (user.centerName || user.username.toUpperCase());
+            const centerAddress = isAdmin ? 'Yeola, Nashik' : (user.centerAddress || '');
+            const centerMobile = isAdmin ? '9822053668' : (user.centerMobile || '');
+
+            // Header title
+            const headerTitle = document.getElementById('headerTitle');
+            if (headerTitle) {
+                const parts = centerName.split(' ');
+                const first = parts[0];
+                const rest = parts.slice(1).join(' ');
+                headerTitle.innerHTML = '🎓 ' + first + (rest ? ' <span>' + rest + '</span>' : '');
+            }
+
+            // Header subtitle
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            if (headerSubtitle) {
+                let sub = 'Fees Management System';
+                if (centerAddress) sub += ' — ' + centerAddress;
+                if (centerMobile) sub += ' | Mb. ' + centerMobile;
+                headerSubtitle.textContent = sub;
+            }
+
+            // Header user badge
+            const badge = document.getElementById('headerUserBadge');
+            if (badge) badge.textContent = '👤 ' + user.username + (isAdmin ? ' (Admin)' : '');
+
+            // Store branding for receipt use
+            window.currentCenterInfo = { centerName, centerAddress, centerMobile };
+        }
+
+        // ── Export Users ──
+        function exportUsers() {
+            const superPwd = prompt('🔒 Export साठी Super Admin Password टाका:');
+            if (superPwd === null) return;
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); return; }
+
+            const users = getUsers();
+            const exportData = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                exportedBy: 'ICS Fees Management',
+                totalUsers: users.length,
+                users: users
+            };
+            const json = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = 'ics_users_' + dateStr + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Users export झाले!\n\nFile: ics_users_' + dateStr + '.json\nTotal users: ' + users.length + '\n\n⚠️ ही file सुरक्षित ठेवा — यात passwords आहेत!');
+        }
+
+        // ── Import Users ──
+        function importUsers(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            event.target.value = '';
+
+            const superPwd = prompt('🔒 Import साठी Super Admin Password टाका:');
+            if (superPwd === null) return;
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.users || !Array.isArray(data.users)) {
+                        alert('❌ Invalid users file! योग्य ics_users.json file निवडा.');
+                        return;
+                    }
+
+                    const count = data.users.length;
+                    const exportedAt = data.exportedAt
+                        ? new Date(data.exportedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                        : 'Unknown';
+
+                    const choice = confirm(
+                        '📂 Users File सापडली!\n\n' +
+                        '• File मधील users: ' + count + '\n' +
+                        '• Export केला: ' + exportedAt + '\n' +
+                        '• सध्याचे users: ' + getUsers().length + '\n\n' +
+                        'OK = सर्व current users REPLACE करा\n' +
+                        'Cancel = Merge करा (duplicate skip होतील)'
+                    );
+
+                    if (choice) {
+                        // Replace mode — admin user नेहमी ठेवा
+                        const hasAdmin = data.users.find(u => u.username === 'admin');
+                        if (!hasAdmin) {
+                            // preserve existing admin
+                            const existingAdmin = getUsers().find(u => u.username === 'admin');
+                            if (existingAdmin) data.users.unshift(existingAdmin);
+                        }
+                        saveUsers(data.users);
+                        alert('✅ Users restore झाले!\n' + data.users.length + ' users loaded.');
+                    } else {
+                        // Merge mode
+                        const existing = getUsers();
+                        const existingNames = new Set(existing.map(u => u.username));
+                        let added = 0, skipped = 0;
+                        data.users.forEach(u => {
+                            if (existingNames.has(u.username)) {
+                                skipped++;
+                            } else {
+                                existing.push(u);
+                                existingNames.add(u.username);
+                                added++;
+                            }
+                        });
+                        saveUsers(existing);
+                        alert('✅ Merge complete!\nAdded: ' + added + ' users\nSkipped (duplicates): ' + skipped);
+                    }
+                    renderUserList();
+                } catch (err) {
+                    alert('❌ File वाचताना error!\nValid ics_users.json file निवडा.\n\nError: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        function resetBranding() {
+            const headerTitle = document.getElementById('headerTitle');
+            if (headerTitle) headerTitle.innerHTML = '🎓 ICS <span>COMPUTERS</span>';
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            if (headerSubtitle) headerSubtitle.textContent = 'Fees Management System — Yeola, Nashik';
+            window.currentCenterInfo = null;
+        }
+
+        function deleteUser(username) {
+            if (username === 'admin') { alert('⚠️ Cannot delete the default admin user!'); return; }
+            const superPwd = prompt('🔒 Enter super admin password to delete user "' + username + '":');
+            if (superPwd === null) return;
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); return; }
+            if (!confirm('⚠️ Delete user "' + username + '"? This cannot be undone.')) return;
+            let users = getUsers();
+            users = users.filter(u => u.username !== username);
+            saveUsers(users);
+            alert('✅ User "' + username + '" deleted.');
+            renderUserList();
+        }
+
+        function resetUserPassword(username) {
+            const superPwd = prompt('🔒 Enter super admin password to reset password for "' + username + '":');
+            if (superPwd === null) return;
+            if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); return; }
+            const newPwd = prompt('🔑 Enter new password for "' + username + '" (min 4 chars):');
+            if (!newPwd || newPwd.length < 4) { alert('⚠️ Password must be at least 4 characters!'); return; }
+            const users = getUsers();
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.password = newPwd;
+                saveUsers(users);
+                alert('✅ Password reset for "' + username + '" successfully!');
+                renderUserList();
+            }
+        }
+
+        function renderUserList() {
+            const container = document.getElementById('userListContainer');
+            if (!container) return;
+            const users = getUsers();
+            if (users.length === 0) {
+                container.innerHTML = '<div style="padding:16px; text-align:center; color:#7a8a92; font-size:0.88em;">No users found.</div>';
+                return;
+            }
+            container.innerHTML = users.map((u, i) => `
+                <div style="padding:10px 14px; border-bottom:${i < users.length-1 ? '1px solid #e8e0d4' : 'none'};">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:700; font-size:0.9em; color:#1c2b30; display:flex; align-items:center; gap:6px;">
+                                ${u.role === 'admin' ? '🛡️' : '👤'} ${u.username}
+                                <span style="background:${u.role==='admin'?'#dbeafe':'#e8f5e9'}; color:${u.role==='admin'?'#1e40af':'#1b5e20'}; font-size:0.75em; padding:2px 7px; border-radius:10px; font-weight:600; text-transform:uppercase;">${u.role}</span>
+                            </div>
+                            ${u.centerName ? `<div style="font-size:0.78em; color:#4a5568; margin-top:3px;">🏫 ${u.centerName}${u.centerAddress ? ' · ' + u.centerAddress : ''}${u.centerMobile ? ' · ' + u.centerMobile : ''}</div>` : ''}
+                        </div>
+                        <div style="display:flex; gap:5px; flex-shrink:0;">
+                            <button onclick="resetUserPassword('${u.username}')" style="background:#fef3c7; border:1px solid #f5cc84; color:#7a4f10; padding:4px 9px; border-radius:5px; font-size:0.77em; font-weight:600; cursor:pointer;">🔑 Pwd</button>
+                            <button onclick="deleteUser('${u.username}')" style="background:#fce8e8; border:1px solid #e8aaaa; color:#5c1a1a; padding:4px 9px; border-radius:5px; font-size:0.77em; font-weight:600; cursor:pointer;">🗑</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ── Old ADMIN_PASSWORD replaced — now uses checkPassword() via login ──
+        function getAdminPassword() { return getLoginPassword(); }
+
+        // Initialize data
+        let students = JSON.parse(localStorage.getItem('icsStudents')) || [];
+
+        // Set today's date for payment
+        document.getElementById('paymentDate').valueAsDate = new Date();
+
+        // Auto-increment receipt number on page load
+        function setNextReceiptNumber() {
+            if (students.length > 0) {
+                const maxReceipt = Math.max(...students.map(s => s.receiptNo || 0));
+                document.getElementById('receiptNo').value = maxReceipt + 1;
+            } else {
+                document.getElementById('receiptNo').value = 1;
+            }
+        }
+
+        // Check password for Quick Actions (uses current dynamic login password)
+        function checkPassword(actionName) {
+            const password = prompt('🔒 Enter admin password to access ' + actionName + ':');
+            if (password === null) return false;
+            if (password !== getLoginPassword()) {
+                alert('❌ Incorrect password! Access denied.');
+                return false;
+            }
+            return true;
+        }
+
+        // Calculate balance on fees input
+        document.getElementById('totalFees').addEventListener('input', calculateBalance);
+        document.getElementById('paidFees').addEventListener('input', calculateBalance);
+
+        function calculateBalance() {
+            const total = parseFloat(document.getElementById('totalFees').value) || 0;
+            const paid = parseFloat(document.getElementById('paidFees').value) || 0;
+            const balance = total - paid;
+            document.getElementById('balanceAmount').textContent = '₹' + balance.toLocaleString('en-IN');
+        }
+
+        // Mobile number validation
+        document.getElementById('mobileNo').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Add Student Form Submit
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const receiptNo = parseInt(document.getElementById('receiptNo').value);
+            const name = document.getElementById('studentName').value.trim();
+            const mobile = document.getElementById('mobileNo').value.trim();
+            const course = document.getElementById('course').value;
+            const totalFees = parseFloat(document.getElementById('totalFees').value);
+            const paidFees = parseFloat(document.getElementById('paidFees').value) || 0;
+
+            // Validation
+            if (mobile.length !== 10) {
+                alert('⚠️ Please enter valid 10-digit mobile number!');
+                return;
+            }
+
+            if (paidFees > totalFees) {
+                alert('⚠️ Paid fees cannot be more than total fees!');
+                return;
+            }
+
+            // Check duplicate receipt number
+            if (students.some(s => s.receiptNo === receiptNo)) {
+                alert('⚠️ Receipt number already exists! Please use different number.');
+                return;
+            }
+
+            // Create student object
+            const student = {
+                id: Date.now(),
+                receiptNo: receiptNo,
+                name: name,
+                mobile: mobile,
+                course: course,
+                totalFees: totalFees,
+                paidFees: paidFees,
+                balance: totalFees - paidFees,
+                payments: paidFees > 0 ? [{
+                    amount: paidFees,
+                    date: new Date().toISOString(),
+                    mode: 'Cash'
+                }] : [],
+                addedDate: new Date().toISOString()
+            };
+
+            students.push(student);
+            localStorage.setItem('icsStudents', JSON.stringify(students));
+
+            alert('✅ Student added successfully!');
+            
+            // Reset form
+            this.reset();
+            setNextReceiptNumber();
+            calculateBalance();
+
+            // Update display
+            updateStatistics();
+            displayStudents();
+        });
+
+        function updateStatistics() {
+            const totalStudents = students.length;
+            const totalCollected = students.reduce((sum, s) => sum + s.paidFees, 0);
+            const totalPending = students.reduce((sum, s) => sum + s.balance, 0);
+
+            // This month collection
+            const currentMonth = new Date().toISOString().substring(0, 7);
+            const monthCollection = students.reduce((sum, s) => {
+                const studentMonth = s.addedDate.substring(0, 7);
+                return sum + (studentMonth === currentMonth ? s.paidFees : 0);
+            }, 0);
+
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('totalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
+            document.getElementById('totalPending').textContent = '₹' + totalPending.toLocaleString('en-IN');
+            document.getElementById('monthCollection').textContent = '₹' + monthCollection.toLocaleString('en-IN');
+        }
+
+        function displayStudents(filteredStudents = null) {
+            const tbody = document.getElementById('studentsTableBody');
+            const dataToShow = filteredStudents || students;
+
+            if (dataToShow.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <div style="font-size: 3em;">📚</div>
+                            <p>No students found.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Sort by receipt number (descending)
+            const sorted = [...dataToShow].sort((a, b) => b.receiptNo - a.receiptNo);
+
+            tbody.innerHTML = sorted.map((student, index) => {
+                const status = student.balance === 0 ? 
+                    '<span class="badge badge-success">Paid</span>' :
+                    student.paidFees > 0 ?
+                    '<span class="badge badge-warning">Partial</span>' :
+                    '<span class="badge badge-danger">Pending</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${student.receiptNo}</strong></td>
+                        <td>${student.name}</td>
+                        <td>${student.mobile}</td>
+                        <td>${student.course}</td>
+                        <td>₹${student.totalFees.toLocaleString('en-IN')}</td>
+                        <td>₹${student.paidFees.toLocaleString('en-IN')}</td>
+                        <td><strong>₹${student.balance.toLocaleString('en-IN')}</strong></td>
+                        <td>${status}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-info btn-small" onclick="downloadReceipt(${student.id})">
+                                    📄 PDF
+                                </button>
+                                ${student.balance > 0 ? `
+                                <button class="btn btn-success btn-small" onclick="openPaymentModal(${student.id})">
+                                    💰 Pay
+                                </button>` : ''}
+                                <button class="btn btn-info btn-small" onclick="viewStudent(${student.id})">
+                                    👁️
+                                </button>
+                                <button class="btn btn-danger btn-small" onclick="deleteStudent(${student.id})">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openPaymentModal(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('paymentStudentId').value = studentId;
+            document.getElementById('paymentStudentName').value = student.name;
+            document.getElementById('paymentBalance').value = '₹' + student.balance.toLocaleString('en-IN');
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentAmount').max = student.balance;
+            
+            // Show payment history
+            const historyDiv = document.getElementById('paymentHistory');
+            if (student.payments && student.payments.length > 0) {
+                historyDiv.innerHTML = `
+                    <h3 style="margin-top: 20px; margin-bottom: 10px;">Payment History</h3>
+                    ${student.payments.map(p => `
+                        <div class="payment-item">
+                            <strong>₹${p.amount.toLocaleString('en-IN')}</strong>
+                            <div style="font-size: 0.85em; color: #6c757d; margin-top: 5px;">
+                                ${new Date(p.date).toLocaleDateString('en-IN')} - ${p.mode}
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                historyDiv.innerHTML = '';
+            }
+
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const studentId = parseInt(document.getElementById('paymentStudentId').value);
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            const mode = document.getElementById('paymentMode').value;
+
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            if (amount > student.balance) {
+                alert('⚠️ Payment amount cannot be more than balance!');
+                return;
+            }
+
+            // Update student
+            student.paidFees += amount;
+            student.balance -= amount;
+            
+            if (!student.payments) student.payments = [];
+            student.payments.push({
+                amount: amount,
+                date: new Date(date).toISOString(),
+                mode: mode
+            });
+
+            localStorage.setItem('icsStudents', JSON.stringify(students));
+
+            alert('✅ Payment added successfully!');
+            
+            closePaymentModal();
+            updateStatistics();
+            displayStudents();
+        });
+
+        function downloadReceipt(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ format: 'a5', unit: 'mm' });
+            const W = 148, H = 210;
+
+            const date = new Date(student.addedDate);
+            const formattedDate = `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
+
+            // ── Background ──────────────────────────────────────
+            doc.setFillColor(245, 240, 232);
+            doc.rect(0, 0, W, H, 'F');
+
+            // Diagonal texture lines
+            doc.setDrawColor(220, 210, 195);
+            doc.setLineWidth(0.2);
+            for (let i = -H; i < W + H; i += 10) {
+                doc.line(i, 0, i + H, H);
+            }
+
+            // ── Header ───────────────────────────────────────────
+            const headerH = 44;
+            doc.setFillColor(26, 82, 118);
+            doc.rect(0, 0, W, headerH, 'F');
+
+            // Golden accent stripe
+            doc.setFillColor(243, 156, 18);
+            doc.rect(0, headerH - 2, W, 2.5, 'F');
+
+            // Decorative circles
+            doc.setFillColor(31, 97, 141);
+            doc.circle(W - 18, 10, 22, 'F');
+            doc.circle(14, headerH - 6, 14, 'F');
+
+            // Institute Name
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(18);
+            const ci = window.currentCenterInfo || { centerName:'ICS COMPUTERS', centerAddress:'Yeola, Nashik', centerMobile:'9822053668' };
+            doc.text(ci.centerName.toUpperCase(), W / 2, 14, { align: 'center' });
+
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(174, 214, 241);
+            if (ci.centerAddress) doc.text(ci.centerAddress, W / 2, 22, { align: 'center' });
+            if (ci.centerMobile) doc.text('Mb. ' + ci.centerMobile, W / 2, ci.centerAddress ? 28 : 22, { align: 'center' });
+
+            // ── PAYMENT RECEIPT Badge ───────────────────────────
+            const badgeY = headerH + 3;
+            doc.setFillColor(243, 156, 18);
+            doc.roundedRect(W / 2 - 30, badgeY, 60, 10, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(10);
+            doc.text('PAYMENT RECEIPT', W / 2, badgeY + 7, { align: 'center' });
+
+            // ── Receipt Details ─────────────────────────────────
+            let y = badgeY + 18;
+            const lx = 8, rx = W - 8;
+
+            // Receipt No & Date
+            doc.setTextColor(26, 82, 118);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(8.5);
+            doc.text('Receipt No. :', lx, y);
+            doc.setDrawColor(26, 82, 118);
+            doc.setLineWidth(0.6);
+            doc.line(lx + 24, y, lx + 55, y);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(student.receiptNo.toString(), lx + 26, y - 1);
+
+            doc.setTextColor(26, 82, 118);
+            doc.setFont(undefined, 'bold');
+            doc.text('Date :', W / 2 + 2, y);
+            doc.setDrawColor(26, 82, 118);
+            doc.line(W / 2 + 16, y, rx, y);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(formattedDate, W / 2 + 18, y - 1);
+
+            y += 9;
+            doc.setTextColor(26, 82, 118);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(8.5);
+            doc.text('Student Name :', lx, y);
+            doc.setDrawColor(26, 82, 118);
+            doc.line(lx + 30, y, rx, y);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(student.name, lx + 32, y - 1);
+
+            y += 8;
+            doc.setTextColor(26, 82, 118);
+            doc.setFont(undefined, 'bold');
+            doc.text('Mobile :', lx, y);
+            doc.setDrawColor(26, 82, 118);
+            doc.line(lx + 18, y, lx + 55, y);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(student.mobile.toString(), lx + 20, y - 1);
+
+            y += 10;
+
+            // ── Fees Table ──────────────────────────────────────
+            const tableX = lx;
+            const tableW = rx - lx;
+            const cols = [tableW * 0.40, tableW * 0.20, tableW * 0.20, tableW * 0.20];
+            const colX = [tableX, tableX + cols[0], tableX + cols[0] + cols[1], tableX + cols[0] + cols[1] + cols[2]];
+            const rowH = 9;
+            const headers = ['Course Name', 'Total Fees', 'Paid Fees', 'Bal. Fees'];
+
+            // Header row
+            doc.setFillColor(26, 82, 118);
+            doc.rect(tableX, y, tableW, rowH, 'F');
+            doc.setFillColor(243, 156, 18);
+            doc.rect(tableX, y, tableW, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(8);
+            headers.forEach((h, i) => {
+                doc.text(h, colX[i] + cols[i] / 2, y + 6.5, { align: 'center' });
+            });
+
+            // Data rows
+            const rowData = [
+                [student.course, `Rs.${student.totalFees}`, `Rs.${student.paidFees}`, `Rs.${student.balance}`],
+                ['', '', '', ''],
+                ['', '', '', ''],
+            ];
+            const rowBg = [[234, 244, 251], [253, 254, 254], [234, 244, 251]];
+            y += rowH;
+
+            rowData.forEach((row, r) => {
+                doc.setFillColor(...rowBg[r]);
+                doc.rect(tableX, y, tableW, rowH, 'F');
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(50, 50, 50);
+                doc.setFontSize(8);
+                row.forEach((cell, i) => {
+                    if (cell) doc.text(cell, colX[i] + cols[i] / 2, y + 6, { align: 'center' });
+                });
+                doc.setDrawColor(174, 214, 241);
+                doc.setLineWidth(0.4);
+                colX.slice(1).forEach(cx => doc.line(cx, y, cx, y + rowH));
+                y += rowH;
+            });
+
+            // Table border
+            doc.setDrawColor(26, 82, 118);
+            doc.setLineWidth(0.8);
+            doc.rect(tableX, y - rowH * 3 - rowH, tableW, rowH * 4, 'S');
+
+            y += 7;
+
+            // ── Footer ──────────────────────────────────────────
+            doc.setDrawColor(243, 156, 18);
+            doc.setLineWidth(1.2);
+            doc.line(lx, y, rx, y);
+
+            y += 7;
+            doc.setFont(undefined, 'bolditalic');
+            doc.setFontSize(7.5);
+            doc.setTextColor(192, 57, 43);
+            doc.text('Once Paid Fees Not Return Under Any Circumstance.', W / 2, y, { align: 'center' });
+
+            y += 8;
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(26, 82, 118);
+            doc.text('Thank You for Choosing ' + ci.centerName.toUpperCase() + '!', W / 2, y, { align: 'center' });
+
+            y += 13;
+            doc.setDrawColor(26, 82, 118);
+            doc.setLineWidth(0.6);
+            doc.line(rx - 38, y, rx, y);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Authorised Signature', rx - 19, y + 4, { align: 'center' });
+
+            // Bottom bar
+            doc.setFillColor(26, 82, 118);
+            doc.rect(0, H - 9, W, 9, 'F');
+            doc.setFillColor(243, 156, 18);
+            doc.rect(0, H - 9, W, 1.5, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(7);
+            let footerText = ci.centerName.toUpperCase();
+            if (ci.centerAddress) footerText += '  |  ' + ci.centerAddress;
+            if (ci.centerMobile) footerText += '  |  Mb. ' + ci.centerMobile;
+            doc.text(footerText, W / 2, H - 3, { align: 'center' });
+
+            const fileName = `Receipt_${student.receiptNo}_${student.name.replace(/\s+/g, '_')}.pdf`;
+            doc.save(fileName);
+        }
+
+        // Number to words converter
+        function numberToWords(num) {
+            if (num === 0) return 'Zero';
+            
+            const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            
+            function convertHundreds(n) {
+                let str = '';
+                if (n > 99) {
+                    str += ones[Math.floor(n / 100)] + ' Hundred ';
+                    n %= 100;
+                }
+                if (n > 19) {
+                    str += tens[Math.floor(n / 10)] + ' ';
+                    n %= 10;
+                }
+                if (n > 9) {
+                    str += teens[n - 10] + ' ';
+                    return str;
+                }
+                if (n > 0) {
+                    str += ones[n] + ' ';
+                }
+                return str;
+            }
+            
+            let word = '';
+            if (num >= 10000000) {
+                word += convertHundreds(Math.floor(num / 10000000)) + 'Crore ';
+                num %= 10000000;
+            }
+            if (num >= 100000) {
+                word += convertHundreds(Math.floor(num / 100000)) + 'Lakh ';
+                num %= 100000;
+            }
+            if (num >= 1000) {
+                word += convertHundreds(Math.floor(num / 1000)) + 'Thousand ';
+                num %= 1000;
+            }
+            if (num > 0) {
+                word += convertHundreds(num);
+            }
+            
+            return word.trim();
+        }
+
+        function viewStudent(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const paymentsText = student.payments && student.payments.length > 0 ?
+                student.payments.map(p => 
+                    `₹${p.amount} on ${new Date(p.date).toLocaleDateString('en-IN')} (${p.mode})`
+                ).join('\n') : 'No payments yet';
+
+            alert(`
+📋 Student Details
+
+👤 Name: ${student.name}
+📱 Mobile: ${student.mobile}
+📚 Course: ${student.course}
+
+💰 Total Fees: ₹${student.totalFees.toLocaleString('en-IN')}
+✅ Paid Fees: ₹${student.paidFees.toLocaleString('en-IN')}
+⚠️ Balance: ₹${student.balance.toLocaleString('en-IN')}
+
+📅 Payment History:
+${paymentsText}
+            `);
+        }
+
+        function deleteStudent(studentId) {
+            if (!confirm('⚠️ Are you sure you want to delete this student?')) return;
+
+            students = students.filter(s => s.id !== studentId);
+            localStorage.setItem('icsStudents', JSON.stringify(students));
+
+            alert('✅ Student deleted successfully!');
+            updateStatistics();
+            displayStudents();
+        }
+
+        function searchStudents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                displayStudents();
+                return;
+            }
+
+            const filtered = students.filter(s => 
+                s.name.toLowerCase().includes(searchTerm) ||
+                s.mobile.includes(searchTerm) ||
+                s.course.toLowerCase().includes(searchTerm)
+            );
+
+            displayStudents(filtered);
+        }
+
+        function showAllStudents() {
+            document.getElementById('searchInput').value = '';
+            displayStudents();
+        }
+
+        function showPendingPayments() {
+            if (!checkPassword('Pending Payments Report')) return;
+            
+            const pending = students.filter(s => s.balance > 0);
+            
+            if (pending.length === 0) {
+                alert('✅ No pending payments! All students have paid.');
+                return;
+            }
+
+            displayStudents(pending);
+            alert(`📊 Showing ${pending.length} students with pending payments`);
+        }
+
+        function showMonthlyReport() {
+            if (!checkPassword('Monthly Report')) return;
+            
+            const currentMonth = new Date().toISOString().substring(0, 7);
+            const monthStudents = students.filter(s => 
+                s.addedDate.substring(0, 7) === currentMonth
+            );
+
+            if (monthStudents.length === 0) {
+                alert('⚠️ No admissions this month.');
+                return;
+            }
+
+            const collected = monthStudents.reduce((sum, s) => sum + s.paidFees, 0);
+            const pending = monthStudents.reduce((sum, s) => sum + s.balance, 0);
+
+            alert(`
+📅 Monthly Report (${new Date().toLocaleDateString('en-IN', {month: 'long', year: 'numeric'})})
+
+👥 Total Students: ${monthStudents.length}
+💰 Total Collected: ₹${collected.toLocaleString('en-IN')}
+⚠️ Total Pending: ₹${pending.toLocaleString('en-IN')}
+            `);
+
+            displayStudents(monthStudents);
+        }
+
+        function exportToExcel() {
+            if (students.length === 0) {
+                alert('⚠️ No data to export!');
+                return;
+            }
+
+            // UTF-8 BOM ensures Excel reads ₹ and special characters correctly
+            const BOM = '\uFEFF';
+
+            let csv = BOM + 'Receipt No.,Student Name,Mobile,Course,Total Fees (Rs.),Paid Fees (Rs.),Balance (Rs.),Status\n';
+
+            students.forEach((student) => {
+                const status = student.balance === 0 ? 'Paid' : 
+                              student.paidFees > 0 ? 'Partial' : 'Pending';
+                
+                csv += `${student.receiptNo},"${student.name}",${student.mobile},"${student.course}",${student.totalFees},${student.paidFees},${student.balance},${status}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `ICS_Students_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('✅ Data exported successfully! \n\nNote: Open in Excel - columns Total Fees, Paid Fees, Balance are plain numbers for easy calculations.');
+        }
+
+        function exportToTally() {
+            
+            if (students.length === 0) {
+                alert('⚠️ No data to export!');
+                return;
+            }
+
+            // Create Tally XML format
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xml += '<ENVELOPE>\n';
+            xml += '  <HEADER>\n';
+            xml += '    <TALLYREQUEST>Import Data</TALLYREQUEST>\n';
+            xml += '  </HEADER>\n';
+            xml += '  <BODY>\n';
+            xml += '    <IMPORTDATA>\n';
+            xml += '      <REQUESTDESC>\n';
+            xml += '        <REPORTNAME>Vouchers</REPORTNAME>\n';
+            xml += '        <STATICVARIABLES>\n';
+            xml += '          <SVCURRENTCOMPANY>ICS Computers</SVCURRENTCOMPANY>\n';
+            xml += '        </STATICVARIABLES>\n';
+            xml += '      </REQUESTDESC>\n';
+            xml += '      <REQUESTDATA>\n';
+
+            // Create vouchers for each student
+            students.forEach((student) => {
+                const date = new Date(student.addedDate);
+                const tallyDate = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+                
+                // Receipt Voucher for payment received
+                if (student.paidFees > 0) {
+                    xml += '        <TALLYMESSAGE xmlns:UDF="TallyUDF">\n';
+                    xml += '          <VOUCHER REMOTEID="" VCHKEY="" VCHTYPE="Receipt" ACTION="Create" OBJVIEW="Accounting Voucher View">\n';
+                    xml += `            <DATE>${tallyDate}</DATE>\n`;
+                    xml += `            <VOUCHERTYPENAME>Receipt</VOUCHERTYPENAME>\n`;
+                    xml += `            <VOUCHERNUMBER>${student.receiptNo}</VOUCHERNUMBER>\n`;
+                    xml += `            <PARTYLEDGERNAME>${student.name}</PARTYLEDGERNAME>\n`;
+                    xml += `            <NARRATION>Fees received for ${student.course} - Receipt No: ${student.receiptNo} - Mobile: ${student.mobile}</NARRATION>\n`;
+                    xml += '            <ALLLEDGERENTRIES.LIST>\n';
+                    xml += `              <LEDGERNAME>${student.name}</LEDGERNAME>\n`;
+                    xml += '              <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>\n';
+                    xml += `              <AMOUNT>-${student.paidFees}</AMOUNT>\n`;
+                    xml += '            </ALLLEDGERENTRIES.LIST>\n';
+                    xml += '            <ALLLEDGERENTRIES.LIST>\n';
+                    xml += '              <LEDGERNAME>Cash</LEDGERNAME>\n';
+                    xml += '              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>\n';
+                    xml += `              <AMOUNT>${student.paidFees}</AMOUNT>\n`;
+                    xml += '            </ALLLEDGERENTRIES.LIST>\n';
+                    xml += '          </VOUCHER>\n';
+                    xml += '        </TALLYMESSAGE>\n';
+                }
+
+                // Journal entry for fees due (balance)
+                if (student.balance > 0) {
+                    xml += '        <TALLYMESSAGE xmlns:UDF="TallyUDF">\n';
+                    xml += '          <VOUCHER REMOTEID="" VCHKEY="" VCHTYPE="Journal" ACTION="Create" OBJVIEW="Accounting Voucher View">\n';
+                    xml += `            <DATE>${tallyDate}</DATE>\n`;
+                    xml += `            <VOUCHERTYPENAME>Journal</VOUCHERTYPENAME>\n`;
+                    xml += `            <VOUCHERNUMBER>FD${student.receiptNo}</VOUCHERNUMBER>\n`;
+                    xml += `            <PARTYLEDGERNAME>${student.name}</PARTYLEDGERNAME>\n`;
+                    xml += `            <NARRATION>Fees due for ${student.course} - Balance Amount - Mobile: ${student.mobile}</NARRATION>\n`;
+                    xml += '            <ALLLEDGERENTRIES.LIST>\n';
+                    xml += `              <LEDGERNAME>${student.name}</LEDGERNAME>\n`;
+                    xml += '              <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>\n';
+                    xml += `              <AMOUNT>-${student.balance}</AMOUNT>\n`;
+                    xml += '            </ALLLEDGERENTRIES.LIST>\n';
+                    xml += '            <ALLLEDGERENTRIES.LIST>\n';
+                    xml += '              <LEDGERNAME>Fees Receivable</LEDGERNAME>\n';
+                    xml += '              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>\n';
+                    xml += `              <AMOUNT>${student.balance}</AMOUNT>\n`;
+                    xml += '            </ALLLEDGERENTRIES.LIST>\n';
+                    xml += '          </VOUCHER>\n';
+                    xml += '        </TALLYMESSAGE>\n';
+                }
+            });
+
+            xml += '      </REQUESTDATA>\n';
+            xml += '    </IMPORTDATA>\n';
+            xml += '  </BODY>\n';
+            xml += '</ENVELOPE>';
+
+            // Download XML file
+            const blob = new Blob([xml], { type: 'text/xml;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `ICS_Tally_Import_${new Date().toISOString().split('T')[0]}.xml`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            const receiptEntries = students.filter(s => s.paidFees > 0).length;
+            const journalEntries = students.filter(s => s.balance > 0).length;
+            const totalEntries = receiptEntries + journalEntries;
+
+            alert(`✅ Tally XML file generated successfully!
+
+📊 Summary:
+• Total Students: ${students.length}
+• Receipt Vouchers: ${receiptEntries} (Payments received)
+• Journal Entries: ${journalEntries} (Fees due)
+• Total Entries: ${totalEntries}
+
+📥 Import Instructions:
+1. Open Tally Prime/ERP 9
+2. Go to Gateway of Tally
+3. Press Alt + I (Import Data)
+4. Select "Tally Vouchers (XML)"
+5. Browse and select the downloaded XML file
+6. Click Import
+
+⚙️ Before Import - Create these ledgers:
+• Cash (under Cash-in-Hand)
+• Fees Receivable (under Sundry Debtors)
+• Enable auto-creation for student ledgers
+
+💡 Tip: Take Tally backup before importing!`);
+        }
+
+        function clearAllData() {
+            if (!checkPassword('Clear All Data')) return;
+            
+            if (!confirm('⚠️⚠️ WARNING!\n\nThis will delete ALL student data permanently!\n\nAre you sure?')) return;
+            
+            if (!confirm('⚠️ FINAL CONFIRMATION!\n\nThis action cannot be undone!\n\nDelete all ' + students.length + ' students?')) return;
+
+            students = [];
+            localStorage.removeItem('icsStudents');
+            
+            updateStatistics();
+            displayStudents();
+            setNextReceiptNumber();
+            
+            alert('✅ All data cleared!');
+        }
+
+
+        function clearAndResetStorage() {
+            if (!checkPassword('Clear & Reset Storage')) return;
+
+            if (!confirm('⚠️ WARNING!\n\nThis will clear ALL local storage data including:\n• Student records\n• User accounts\n• Login password\n• Expiry date\n• All settings\n\nThe app will reset to factory defaults.\n\nAre you sure?')) return;
+
+            if (!confirm('⚠️ FINAL CONFIRMATION!\n\nThis cannot be undone!\n\nAll data will be permanently erased and the page will reload.')) return;
+
+            // Clear all ICS-related localStorage keys
+            const keysToRemove = ['icsStudents', 'icsUsers', 'icsLoginPwd', 'icsSoftwareExpiry', 'icsReceiptCounter'];
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+
+            // Also clear any other keys that start with 'ics'
+            Object.keys(localStorage).forEach(key => {
+                if (key.toLowerCase().startsWith('ics')) localStorage.removeItem(key);
+            });
+
+            alert('✅ Storage cleared & reset complete!\n\nPage will now reload with fresh defaults.');
+            location.reload();
+        }
+
+        // ─── Generate Report ────────────────────────────────────────────
+        function openGenerateReportModal() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('reportFromDate').value = today;
+            document.getElementById('reportToDate').value = today;
+            document.getElementById('reportType').value = 'custom';
+            document.getElementById('reportStatusFilter').value = 'all';
+            document.getElementById('reportCourseFilter').value = 'all';
+            document.getElementById('customDateRange').style.display = 'block';
+            document.getElementById('generateReportModal').style.display = 'flex';
+        }
+
+        function closeGenerateReportModal() {
+            document.getElementById('generateReportModal').style.display = 'none';
+        }
+
+        function onReportTypeChange() {
+            const type = document.getElementById('reportType').value;
+            const rangeDiv = document.getElementById('customDateRange');
+            const today = new Date();
+            let from, to;
+
+            if (type === 'custom') {
+                rangeDiv.style.display = 'block';
+                return;
+            }
+            rangeDiv.style.display = 'none';
+
+            if (type === 'daily') {
+                from = to = today.toISOString().split('T')[0];
+            } else if (type === 'weekly') {
+                const day = today.getDay();
+                const mon = new Date(today); mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+                const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+                from = mon.toISOString().split('T')[0];
+                to   = sun.toISOString().split('T')[0];
+            } else if (type === 'monthly') {
+                from = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                to   = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+            } else if (type === 'yearly') {
+                from = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0];
+                to   = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+            }
+            document.getElementById('reportFromDate').value = from;
+            document.getElementById('reportToDate').value   = to;
+        }
+
+        function generateReport() {
+            const type          = document.getElementById('reportType').value;
+            const fromStr       = document.getElementById('reportFromDate').value;
+            const toStr         = document.getElementById('reportToDate').value;
+            const statusFilter  = document.getElementById('reportStatusFilter').value;
+            const courseFilter  = document.getElementById('reportCourseFilter').value;
+
+            if (!fromStr || !toStr) { alert('⚠️ Please select From and To dates.'); return; }
+
+            const from = new Date(fromStr);
+            const to   = new Date(toStr); to.setHours(23,59,59,999);
+
+            if (from > to) { alert('⚠️ From date cannot be after To date.'); return; }
+
+            // Filter students added in the range
+            let filtered = students.filter(s => {
+                const d = new Date(s.addedDate);
+                return d >= from && d <= to;
+            });
+
+            // Status filter
+            if (statusFilter === 'paid')    filtered = filtered.filter(s => s.balance === 0);
+            else if (statusFilter === 'partial') filtered = filtered.filter(s => s.paidFees > 0 && s.balance > 0);
+            else if (statusFilter === 'pending') filtered = filtered.filter(s => s.paidFees === 0);
+
+            // Course filter
+            if (courseFilter !== 'all') filtered = filtered.filter(s => s.course === courseFilter);
+
+            if (filtered.length === 0) {
+                alert('⚠️ No students found for the selected criteria.');
+                return;
+            }
+
+            closeGenerateReportModal();
+            generateReportPDF(filtered, fromStr, toStr, statusFilter, courseFilter);
+        }
+
+        function generateReportPDF(list, fromStr, toStr, statusFilter, courseFilter) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            const W = doc.internal.pageSize.getWidth();
+            const H = doc.internal.pageSize.getHeight();
+            const lx = 10, rx = W - 10;
+            let y = 0;
+
+            // ── Top bar ──
+            doc.setFillColor(26, 82, 118);
+            doc.rect(0, 0, W, 18, 'F');
+            doc.setFillColor(243, 156, 18);
+            doc.rect(0, 16, W, 2.5, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(14);
+            const ciR = window.currentCenterInfo || { centerName:'ICS COMPUTERS', centerAddress:'Yeola, Nashik', centerMobile:'9822053668' };
+            doc.text(ciR.centerName.toUpperCase(), W / 2, 11, { align: 'center' });
+            y = 28;
+
+            // ── Title ──
+            doc.setFillColor(111, 66, 193);
+            doc.roundedRect(lx, y - 5, W - 20, 12, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('FEES COLLECTION REPORT', W / 2, y + 2.5, { align: 'center' });
+            y += 14;
+
+            // ── Report meta ──
+            doc.setTextColor(60, 60, 60);
+            doc.setFontSize(8.5);
+            doc.setFont(undefined, 'normal');
+            const fromLabel = new Date(fromStr).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+            const toLabel   = new Date(toStr).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+            doc.text('Period: ' + fromLabel + ' to ' + toLabel, lx, y);
+            doc.text('Generated: ' + new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }), rx, y, { align: 'right' });
+            y += 5;
+            if (statusFilter !== 'all') {
+                doc.text('Status: ' + statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1), lx, y);
+                y += 5;
+            }
+            if (courseFilter !== 'all') {
+                doc.text('Course: ' + courseFilter, lx, y);
+                y += 5;
+            }
+            y += 3;
+
+            // ── Summary boxes ──
+            const totalCollected = list.reduce((s, r) => s + r.paidFees, 0);
+            const totalPending   = list.reduce((s, r) => s + r.balance,  0);
+            const totalFees      = list.reduce((s, r) => s + r.totalFees, 0);
+            const paidCount      = list.filter(r => r.balance === 0).length;
+            const partialCount   = list.filter(r => r.paidFees > 0 && r.balance > 0).length;
+            const pendingCount   = list.filter(r => r.paidFees === 0).length;
+
+            const boxes = [
+                { label: 'Total Students', value: list.length, color: [26, 82, 118] },
+                { label: 'Total Collected', value: 'Rs.' + totalCollected.toLocaleString('en-IN'), color: [39, 174, 96] },
+                { label: 'Total Pending', value: 'Rs.' + totalPending.toLocaleString('en-IN'), color: [192, 57, 43] },
+                { label: 'Total Fees', value: 'Rs.' + totalFees.toLocaleString('en-IN'), color: [111, 66, 193] }
+            ];
+            const bw = (W - 20 - 9) / 4, bh = 16;
+            boxes.forEach((b, i) => {
+                const bx = lx + i * (bw + 3);
+                doc.setFillColor(...b.color);
+                doc.roundedRect(bx, y, bw, bh, 2, 2, 'F');
+                doc.setTextColor(255,255,255);
+                doc.setFont(undefined, 'bold');
+                doc.setFontSize(9);
+                doc.text(String(b.value), bx + bw / 2, y + 7, { align: 'center' });
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(6.5);
+                doc.text(b.label, bx + bw / 2, y + 12.5, { align: 'center' });
+            });
+            y += bh + 4;
+
+            // Status summary row
+            doc.setTextColor(60, 60, 60);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(8);
+            doc.text('Fully Paid: ' + paidCount + '  |  Partial: ' + partialCount + '  |  Pending: ' + pendingCount, W / 2, y, { align: 'center' });
+            y += 7;
+
+            // ── Table ──
+            const cols   = ['#', 'Receipt', 'Student Name', 'Course', 'Total', 'Paid', 'Balance', 'Status'];
+            const colWs  = [8, 16, 42, 26, 22, 22, 22, 18];
+            const tableW = colWs.reduce((a, b) => a + b, 0);
+            const tableX = (W - tableW) / 2;
+            const rowH   = 7;
+
+            // Header
+            let cx = tableX;
+            doc.setFillColor(26, 82, 118);
+            doc.rect(tableX, y, tableW, rowH, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(7);
+            cols.forEach((col, i) => {
+                doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                cx += colWs[i];
+            });
+            y += rowH;
+
+            let pageNum = 1;
+            function addPageNumber() {
+                doc.setFontSize(7);
+                doc.setTextColor(150,150,150);
+                doc.setFont(undefined, 'normal');
+                doc.text('Page ' + pageNum, W / 2, H - 4, { align: 'center' });
+            }
+
+            list.forEach((s, idx) => {
+                if (y + rowH > H - 15) {
+                    addPageNumber();
+                    doc.addPage();
+                    pageNum++;
+                    y = 15;
+                    // Repeat header
+                    cx = tableX;
+                    doc.setFillColor(26, 82, 118);
+                    doc.rect(tableX, y, tableW, rowH, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont(undefined, 'bold');
+                    doc.setFontSize(7);
+                    cols.forEach((col, i) => {
+                        doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                        cx += colWs[i];
+                    });
+                    y += rowH;
+                }
+
+                const isEven = idx % 2 === 0;
+                doc.setFillColor(isEven ? 245 : 255, isEven ? 245 : 255, isEven ? 252 : 255);
+                doc.rect(tableX, y, tableW, rowH, 'F');
+
+                const status = s.balance === 0 ? 'Paid' : s.paidFees > 0 ? 'Partial' : 'Pending';
+                const statusColor = status === 'Paid' ? [39,174,96] : status === 'Partial' ? [243,156,18] : [192,57,43];
+
+                const cells = [
+                    String(idx + 1),
+                    String(s.receiptNo),
+                    s.name.length > 20 ? s.name.substring(0,19) + '.' : s.name,
+                    s.course.length > 14 ? s.course.substring(0,13) + '.' : s.course,
+                    'Rs.' + s.totalFees.toLocaleString('en-IN'),
+                    'Rs.' + s.paidFees.toLocaleString('en-IN'),
+                    'Rs.' + s.balance.toLocaleString('en-IN'),
+                    status
+                ];
+
+                cx = tableX;
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(6.8);
+                cells.forEach((cell, i) => {
+                    if (i === 7) {
+                        doc.setTextColor(...statusColor);
+                        doc.setFont(undefined, 'bold');
+                    } else {
+                        doc.setTextColor(50, 50, 50);
+                        doc.setFont(undefined, 'normal');
+                    }
+                    doc.text(cell, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                    cx += colWs[i];
+                });
+
+                // Row border
+                doc.setDrawColor(220, 220, 230);
+                doc.setLineWidth(0.2);
+                doc.line(tableX, y + rowH, tableX + tableW, y + rowH);
+                y += rowH;
+            });
+
+            // Table outer border
+            doc.setDrawColor(26, 82, 118);
+            doc.setLineWidth(0.5);
+            doc.rect(tableX, y - rowH * list.length - rowH, tableW, rowH * (list.length + 1), 'S');
+
+            y += 8;
+
+            // ── Footer ──
+            doc.setDrawColor(243, 156, 18);
+            doc.setLineWidth(1);
+            doc.line(lx, y, rx, y);
+            y += 6;
+
+            doc.setFont(undefined, 'bolditalic');
+            doc.setFontSize(7.5);
+            doc.setTextColor(192, 57, 43);
+            doc.text('Once Paid Fees Not Return Under Any Circumstance.', W / 2, y, { align: 'center' });
+            y += 6;
+
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(26, 82, 118);
+            let rFooter = ciR.centerName.toUpperCase();
+            if (ciR.centerAddress) rFooter += ' - ' + ciR.centerAddress;
+            if (ciR.centerMobile) rFooter += ' | Mb. ' + ciR.centerMobile;
+            doc.text(rFooter, W / 2, y, { align: 'center' });
+
+            // Bottom bar
+            doc.setFillColor(26, 82, 118);
+            doc.rect(0, H - 9, W, 9, 'F');
+            doc.setFillColor(243, 156, 18);
+            doc.rect(0, H - 9, W, 1.5, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(7);
+            doc.text(rFooter, W / 2, H - 3, { align: 'center' });
+
+            addPageNumber();
+
+            const fname = ciR.centerName.replace(/\s+/g,'_') + '_Report_' + fromStr + '_to_' + toStr + '.pdf';
+            doc.save(fname);
+        }
+
+        // ── BACKUP & RESTORE ──
+
+        function backupData() {
+            if (students.length === 0) {
+                alert('⚠️ No data to backup! Add some students first.');
+                return;
+            }
+            const backup = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                exportedBy: 'ICS Computers Fees Management',
+                totalStudents: students.length,
+                students: students
+            };
+            const json = JSON.stringify(backup, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+            a.href = url;
+            a.download = 'ICS_Backup_' + dateStr + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Backup saved successfully!\nFile: ICS_Backup_' + dateStr + '.json\nStudents backed up: ' + students.length);
+        }
+
+        function restoreData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Reset file input so same file can be re-selected if needed
+            event.target.value = '';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+
+                    // Validate structure
+                    if (!backup.students || !Array.isArray(backup.students)) {
+                        alert('❌ Invalid backup file! The file does not contain valid student data.');
+                        return;
+                    }
+
+                    const count = backup.students.length;
+                    const exportedAt = backup.exportedAt
+                        ? new Date(backup.exportedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                        : 'Unknown';
+
+                    const choice = confirm(
+                        '📂 Backup File Detected!\n\n' +
+                        '• Students in backup: ' + count + '\n' +
+                        '• Backed up on: ' + exportedAt + '\n' +
+                        '• Current students: ' + students.length + '\n\n' +
+                        'Choose restore mode:\n' +
+                        '• OK = REPLACE all current data with backup\n' +
+                        '• Cancel = Merge backup into current data (no duplicates)'
+                    );
+
+                    if (choice) {
+                        // Replace mode
+                        const pwd = prompt('🔒 Enter admin password to REPLACE all data:');
+                        if (pwd !== getLoginPassword()) {
+                            alert('❌ Incorrect password! Restore cancelled.');
+                            return;
+                        }
+                        students = backup.students;
+                        localStorage.setItem('icsStudents', JSON.stringify(students));
+                        updateStatistics();
+                        displayStudents();
+                        setNextReceiptNumber();
+                        alert('✅ Data restored successfully!\n' + count + ' students loaded.');
+                    } else {
+                        // Merge mode — skip duplicates by id and receiptNo
+                        const existingIds = new Set(students.map(s => s.id));
+                        const existingReceipts = new Set(students.map(s => s.receiptNo));
+                        let added = 0, skipped = 0;
+                        backup.students.forEach(s => {
+                            if (existingIds.has(s.id) || existingReceipts.has(s.receiptNo)) {
+                                skipped++;
+                            } else {
+                                students.push(s);
+                                existingIds.add(s.id);
+                                existingReceipts.add(s.receiptNo);
+                                added++;
+                            }
+                        });
+                        localStorage.setItem('icsStudents', JSON.stringify(students));
+                        updateStatistics();
+                        displayStudents();
+                        setNextReceiptNumber();
+                        alert('✅ Merge complete!\nAdded: ' + added + ' students\nSkipped (duplicates): ' + skipped);
+                    }
+                } catch (err) {
+                    alert('❌ Failed to read backup file!\nMake sure you selected a valid ICS backup JSON file.\n\nError: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Close generate report modal on outside click
+        window.addEventListener('click', function(e) {
+            const m = document.getElementById('generateReportModal');
+            if (e.target === m) closeGenerateReportModal();
+        });
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            // Hide admin settings button until logged in as admin
+            const adminBtn = document.querySelector('.admin-panel-btn');
+            if (adminBtn) adminBtn.style.display = 'none';
+            // 1. Check if software is expired — show expired screen immediately
+            if (getDaysRemaining() <= 0) {
+                document.getElementById('loginScreen').style.display = 'none';
+                showExpiredScreen();
+                return;
+            }
+            // 2. Show login screen (always start with login)
+            document.getElementById('loginScreen').style.display = 'flex';
+
+            // 3. Initialize app data
+            updateStatistics();
+            displayStudents();
+            setNextReceiptNumber();
+
+            // 4. Set min date for expiry picker to tomorrow
+            const tmr = new Date();
+            tmr.setDate(tmr.getDate() + 1);
+            const minDate = document.getElementById('newExpiryDate');
+            if (minDate) minDate.min = tmr.toISOString().split('T')[0];
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                closePaymentModal();
+            }
+        };
+    </script>
+</body>
+</html>
