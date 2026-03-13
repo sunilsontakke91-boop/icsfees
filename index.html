@@ -262,7 +262,10 @@
             border-bottom: 3px solid rgba(200, 115, 42, 0.6);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 32px rgba(10,30,40,0.45); }
 
         .stat-card::after {
             content: '';
@@ -874,19 +877,19 @@
 
         <!-- Statistics Dashboard -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" onclick="openQLModal('students')" title="Students यादी बघा">
                 <div class="stat-label">Total Students</div>
                 <div class="stat-value" id="totalStudents">0</div>
             </div>
-            <div class="stat-card green">
+            <div class="stat-card green" onclick="openQLModal('collected')" title="Collected यादी बघा">
                 <div class="stat-label">Total Collected</div>
                 <div class="stat-value" id="totalCollected">₹0</div>
             </div>
-            <div class="stat-card red">
+            <div class="stat-card red" onclick="openQLModal('pending')" title="Pending यादी बघा">
                 <div class="stat-label">Total Pending</div>
                 <div class="stat-value" id="totalPending">₹0</div>
             </div>
-            <div class="stat-card yellow">
+            <div class="stat-card yellow" onclick="openQLModal('month')" title="This Month यादी बघा">
                 <div class="stat-label">This Month</div>
                 <div class="stat-value" id="monthCollection">₹0</div>
             </div>
@@ -922,17 +925,15 @@
 
                     <div class="form-group">
                         <label>Course <span class="required">*</span></label>
-                        <select id="course" required>
-                            <option value="">Select Course</option>
-                            <option value="MS-CIT">MS-CIT</option>
-                            <option value="Tally">Tally</option>
-                            <option value="Typing">Typing</option>
-                            <option value="Graphics">Graphics</option>
-                            <option value="Coding">Coding</option>
-                            <option value="Advanced Excel">Advanced Excel</option>
-                            <option value="DTP">DTP</option>
-                            <option value="Custom">Custom Course</option>
-                        </select>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <select id="course" required style="flex:1;">
+                                <option value="">Select Course</option>
+                            </select>
+                            <button type="button" onclick="openCourseManager()" title="Courses Manage करा"
+                                style="flex-shrink:0; width:38px; height:38px; background:linear-gradient(135deg,#1a3a4a,#1e4d5e); color:#c8a97e; border:2px solid #c8732a; border-radius:8px; cursor:pointer; font-size:1.1em; display:flex; align-items:center; justify-content:center; transition:all 0.2s;"
+                                onmouseover="this.style.background='linear-gradient(135deg,#1e4d5e,#2a6d84)'"
+                                onmouseout="this.style.background='linear-gradient(135deg,#1a3a4a,#1e4d5e)'">⚙️</button>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -1079,14 +1080,6 @@
                 <label>Filter by Course</label>
                 <select id="reportCourseFilter">
                     <option value="all">All Courses</option>
-                    <option value="MS-CIT">MS-CIT</option>
-                    <option value="Tally">Tally</option>
-                    <option value="Typing">Typing</option>
-                    <option value="Graphics">Graphics</option>
-                    <option value="Coding">Coding</option>
-                    <option value="Advanced Excel">Advanced Excel</option>
-                    <option value="DTP">DTP</option>
-                    <option value="Custom">Custom Course</option>
                 </select>
             </div>
 
@@ -1150,7 +1143,7 @@
 ════════════════════════════════════════ -->
 <div id="loginScreen">
     <div class="login-card">
-        <div class="login-logo" id="loginLogo">🎓 ICS <span>COMPUTERS</span></div>
+        <div class="login-logo" id="loginLogo">🎓 ICS <span>DEVELOPERS</span></div>
         <div class="login-subtitle" id="loginSubtitle">Fees Management System</div>
         <div class="login-divider"></div>
         <div class="login-icon-wrap">🔐</div>
@@ -3089,10 +3082,589 @@ ${paymentsText}
         // Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('paymentModal');
-            if (event.target === modal) {
-                closePaymentModal();
-            }
+            if (event.target === modal) closePaymentModal();
+            const ql = document.getElementById('qlModal');
+            if (event.target === ql) closeQLModal();
         };
+
+        // ══════════════════════════════════════════════
+        // QUICK LIST MODAL — Stat Card Click
+        // ══════════════════════════════════════════════
+        function openQLModal(type) {
+            const titles = {
+                students:  '📚 All Students List',
+                collected: '✅ Total Collected — Paid Students',
+                pending:   '⏳ Total Pending — Balance Students',
+                month:     '📅 This Month Collection'
+            };
+            document.getElementById('qlModalTitle').textContent = titles[type];
+            document.getElementById('qlSearch').value = '';
+            document.getElementById('qlSearch').oninput = () => renderQLList(type);
+            document.getElementById('qlModal').dataset.type = type;
+            renderQLList(type);
+            document.getElementById('qlModal').style.display = 'flex';
+        }
+
+        function closeQLModal() {
+            document.getElementById('qlModal').style.display = 'none';
+        }
+
+        function renderQLList(type) {
+            const q = (document.getElementById('qlSearch').value || '').toLowerCase();
+            const body = document.getElementById('qlBody');
+            const currentMonth = new Date().toISOString().substring(0, 7);
+
+            let list = [...students];
+            if (type === 'collected') list = list.filter(s => s.paidFees > 0);
+            if (type === 'pending')   list = list.filter(s => s.balance > 0);
+            if (type === 'month')     list = list.filter(s => s.addedDate && s.addedDate.substring(0,7) === currentMonth);
+            if (q) list = list.filter(s =>
+                s.name.toLowerCase().includes(q) ||
+                (s.mobile||'').includes(q) ||
+                (s.course||'').toLowerCase().includes(q) ||
+                String(s.receiptNo||'').includes(q)
+            );
+
+            if (!list.length) {
+                body.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#7a8a9a;">
+                    <div style="font-size:3em;margin-bottom:10px;">📭</div>
+                    <p>कोणताही डेटा सापडला नाही</p></div>`;
+                return;
+            }
+
+            const sorted = [...list].sort((a,b) => (b.receiptNo||0)-(a.receiptNo||0));
+            const totalFees = sorted.reduce((s,x)=>s+(x.totalFees||0),0);
+            const totalPaid = sorted.reduce((s,x)=>s+(x.paidFees||0),0);
+            const totalBal  = sorted.reduce((s,x)=>s+(x.balance||0),0);
+
+            const rows = sorted.map((s,i) => {
+                const badge = s.balance===0
+                    ? `<span style="background:#1b4332;color:#6fcf97;padding:3px 9px;border-radius:12px;font-size:0.78em;font-weight:700;">✅ Paid</span>`
+                    : s.paidFees>0
+                    ? `<span style="background:#7a4f10;color:#f6c471;padding:3px 9px;border-radius:12px;font-size:0.78em;font-weight:700;">⏳ Partial</span>`
+                    : `<span style="background:#5c1a1a;color:#f1948a;padding:3px 9px;border-radius:12px;font-size:0.78em;font-weight:700;">❌ Pending</span>`;
+                return `<tr style="border-bottom:1px solid #1e2e3a;">
+                    <td style="padding:8px 10px;color:#7a8a9a;font-size:0.85em;">${i+1}</td>
+                    <td style="padding:8px 10px;color:#7a8a9a;font-size:0.85em;">#${s.receiptNo||'—'}</td>
+                    <td style="padding:8px 10px;"><strong style="color:#e0d8cc;">${s.name}</strong><br>
+                        <small style="color:#7a8a9a;">${s.mobile||''}</small></td>
+                    <td style="padding:8px 10px;color:#c8a97e;font-size:0.88em;">${s.course||'—'}</td>
+                    <td style="padding:8px 10px;color:#e0d8cc;">₹${(s.totalFees||0).toLocaleString('en-IN')}</td>
+                    <td style="padding:8px 10px;color:#6fcf97;font-weight:700;">₹${(s.paidFees||0).toLocaleString('en-IN')}</td>
+                    <td style="padding:8px 10px;color:${s.balance>0?'#f1948a':'#6fcf97'};font-weight:700;">₹${(s.balance||0).toLocaleString('en-IN')}</td>
+                    <td style="padding:8px 10px;">${badge}</td>
+                </tr>`;
+            }).join('');
+
+            body.innerHTML = `
+                <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.87em;">
+                    <thead><tr style="background:#1a3040;">
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">#</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Receipt</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Student Name</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Course</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Total Fees</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Paid</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Balance</th>
+                        <th style="padding:9px 10px;color:#c8a97e;text-align:left;font-weight:600;">Status</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table></div>
+                <div style="margin-top:14px;padding:11px 16px;background:#1a2a35;border-radius:8px;border:1px solid #1e3040;display:flex;gap:22px;flex-wrap:wrap;font-size:0.86em;">
+                    <span style="color:#7a8a9a;">एकूण: <strong style="color:#e0d8cc;">${sorted.length}</strong></span>
+                    <span style="color:#7a8a9a;">Total Fees: <strong style="color:#e0d8cc;">₹${totalFees.toLocaleString('en-IN')}</strong></span>
+                    <span style="color:#7a8a9a;">Collected: <strong style="color:#6fcf97;">₹${totalPaid.toLocaleString('en-IN')}</strong></span>
+                    <span style="color:#7a8a9a;">Pending: <strong style="color:#f1948a;">₹${totalBal.toLocaleString('en-IN')}</strong></span>
+                </div>`;
+        }
+
+        // ── PRINT (White / Ink-saving) — Login user branding ──
+        function qlPrint() {
+            const type  = document.getElementById('qlModal').dataset.type;
+            const title = document.getElementById('qlModalTitle').textContent;
+            const q     = (document.getElementById('qlSearch').value||'').trim();
+            const qLow  = q.toLowerCase();
+            const currentMonth = new Date().toISOString().substring(0,7);
+            const date  = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+            // Login user center info
+            const ci    = window.currentCenterInfo || {};
+            const cName    = ci.centerName    || 'ICS COMPUTERS';
+            const cAddress = ci.centerAddress || 'Near Old Nagar Palika, Sali Lane, Yeola';
+            const cMobile  = ci.centerMobile  || '9822053668';
+            const cUser    = currentLoggedInUser ? currentLoggedInUser.username : '';
+            const cRole    = currentLoggedInUser ? currentLoggedInUser.role     : '';
+
+            let list = [...students];
+            if (type==='collected') list = list.filter(s => s.paidFees > 0);
+            if (type==='pending')   list = list.filter(s => s.balance > 0);
+            if (type==='month')     list = list.filter(s => s.addedDate && s.addedDate.substring(0,7) === currentMonth);
+            if (qLow) list = list.filter(s =>
+                s.name.toLowerCase().includes(qLow) ||
+                (s.mobile||'').includes(qLow) ||
+                (s.course||'').toLowerCase().includes(qLow) ||
+                String(s.receiptNo||'').includes(qLow)
+            );
+            const sorted = [...list].sort((a,b)=>(b.receiptNo||0)-(a.receiptNo||0));
+            if (!sorted.length) { alert('⚠️ Print साठी डेटा नाही!'); return; }
+
+            const isClientFilter = q.length > 0;
+            const clientName  = isClientFilter ? q.toUpperCase() : '';
+            const reportTitle = isClientFilter ? `FEES REPORT — ${clientName}` : title.replace(/[^\x00-\x7F]/g,'').trim();
+            const subTitle    = isClientFilter ? 'Individual Student Report'
+                : (type==='month' ? new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : 'All Records');
+
+            const totalFees = sorted.reduce((s,x)=>s+(x.totalFees||0),0);
+            const totalPaid = sorted.reduce((s,x)=>s+(x.paidFees||0),0);
+            const totalBal  = sorted.reduce((s,x)=>s+(x.balance||0),0);
+            const fullyPaid = sorted.filter(x=>x.balance<=0).length;
+            const partial   = sorted.filter(x=>x.balance>0&&x.paidFees>0).length;
+            const pending   = sorted.filter(x=>x.paidFees===0&&x.balance>0).length;
+
+            const rows = sorted.map((s,i) => {
+                const st = s.balance===0?'Paid':s.paidFees>0?'Partial':'Pending';
+                const stColor = s.balance===0?'#1a6b3c':s.paidFees>0?'#7a4f00':'#8b0000';
+                return `<tr>
+                    <td>${i+1}</td><td>#${s.receiptNo||'—'}</td>
+                    <td><strong>${s.name}</strong><br><small style="color:#555;">${s.mobile||''}</small></td>
+                    <td>${s.course||'—'}</td>
+                    <td>Rs.${(s.totalFees||0).toLocaleString('en-IN')}</td>
+                    <td>Rs.${(s.paidFees||0).toLocaleString('en-IN')}</td>
+                    <td style="color:${s.balance>0?'#8b0000':'#1a6b3c'};font-weight:bold;">Rs.${(s.balance||0).toLocaleString('en-IN')}</td>
+                    <td style="color:${stColor};font-weight:bold;">${st}</td>
+                </tr>`;
+            }).join('');
+
+            const clientInfoHTML = (isClientFilter && sorted.length===1) ? `
+                <div style="border:1px solid #999;border-radius:4px;padding:8px 12px;margin-bottom:8px;background:#fafafa;">
+                <table style="width:100%;font-size:11px;border:none;">
+                    <tr>
+                        <td style="border:none;padding:2px 8px 2px 0;width:50%;"><strong>Student Name:</strong> ${sorted[0].name}</td>
+                        <td style="border:none;padding:2px 0;"><strong>Receipt No:</strong> #${sorted[0].receiptNo||'—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:none;padding:2px 8px 2px 0;"><strong>Mobile:</strong> ${sorted[0].mobile||'—'}</td>
+                        <td style="border:none;padding:2px 0;"><strong>Course:</strong> ${sorted[0].course||'—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:none;padding:2px 8px 2px 0;"><strong>Date:</strong> ${sorted[0].addedDate||'—'}</td>
+                        <td style="border:none;padding:2px 0;"><strong>Status:</strong>
+                            <span style="color:${sorted[0].balance===0?'#1a6b3c':'#8b0000'};font-weight:bold;">
+                                ${sorted[0].balance===0?'Fully Paid':sorted[0].paidFees>0?'Partial Payment':'Pending'}
+                            </span>
+                        </td>
+                    </tr>
+                </table></div>` : '';
+
+            const win = window.open('','_blank');
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${reportTitle}</title>
+            <style>
+                *{margin:0;padding:0;box-sizing:border-box;}
+                body{font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;}
+                .hdr{text-align:center;padding:10px 0 6px;border-bottom:2px solid #000;}
+                .hdr h1{font-size:18px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;}
+                .hdr p{font-size:10.5px;color:#333;margin-top:2px;}
+                .hdr .gi{font-size:9.5px;color:#666;margin-top:3px;font-style:italic;}
+                .ttl{text-align:center;font-size:14px;font-weight:bold;border:2px solid #000;margin:8px 0 2px;padding:6px;text-transform:uppercase;letter-spacing:0.5px;}
+                .sub{text-align:center;font-size:10px;color:#555;margin-bottom:6px;}
+                .meta{display:flex;justify-content:space-between;font-size:10.5px;color:#444;margin-bottom:6px;}
+                .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;}
+                .sum-box{border:1px solid #999;border-radius:4px;padding:6px 8px;text-align:center;}
+                .sum-box .sv{font-size:13px;font-weight:bold;}
+                .sum-box .sl{font-size:9.5px;color:#555;margin-top:2px;}
+                .status-line{text-align:center;font-size:10.5px;color:#333;border-top:1px dashed #aaa;border-bottom:1px dashed #aaa;padding:4px 0;margin-bottom:8px;}
+                table{width:100%;border-collapse:collapse;font-size:11px;}
+                thead tr{background:#000!important;color:#fff!important;}
+                th{padding:6px 8px;text-align:left;font-weight:bold;border:1px solid #000;}
+                td{padding:6px 8px;border:1px solid #ccc;vertical-align:top;}
+                tbody tr:nth-child(even){background:#f5f5f5;}
+                .ftr{text-align:center;font-size:10.5px;color:#333;border-top:2px solid #000;margin-top:10px;padding-top:6px;}
+                .disc{text-align:center;font-size:10px;color:#555;font-style:italic;margin-top:3px;}
+                @media print{body{margin:8mm;}thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+            </style></head><body>
+            <div class="hdr">
+                <h1>${cName}</h1>
+                <p>${cAddress}${cMobile?' &nbsp;|&nbsp; Mb. '+cMobile:''}</p>
+                ${cUser?`<div class="gi">Generated by: ${cUser}${cRole?' ('+cRole+')':''} &nbsp;|&nbsp; ${date}</div>`:''}
+            </div>
+            <div style="padding:0 4px;">
+                <div class="ttl">${reportTitle}</div>
+                <div class="sub">${subTitle}</div>
+                <div class="meta"><span>Total Records: ${sorted.length}</span><span>Generated: ${date}</span></div>
+                ${clientInfoHTML}
+                <div class="summary">
+                    <div class="sum-box"><div class="sv">${sorted.length}</div><div class="sl">Students</div></div>
+                    <div class="sum-box"><div class="sv">Rs.${totalFees.toLocaleString('en-IN')}</div><div class="sl">Total Fees</div></div>
+                    <div class="sum-box"><div class="sv" style="color:#1a6b3c;">Rs.${totalPaid.toLocaleString('en-IN')}</div><div class="sl">Collected</div></div>
+                    <div class="sum-box"><div class="sv" style="color:#8b0000;">Rs.${totalBal.toLocaleString('en-IN')}</div><div class="sl">Pending</div></div>
+                </div>
+                ${!isClientFilter?`<div class="status-line">Fully Paid: <strong>${fullyPaid}</strong> &nbsp;|&nbsp; Partial: <strong>${partial}</strong> &nbsp;|&nbsp; Pending: <strong>${pending}</strong></div>`:''}
+                <table>
+                    <thead><tr><th>#</th><th>Receipt</th><th>Student Name</th><th>Course</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                <div class="ftr"><strong>${cName}</strong>${cAddress?' &mdash; '+cAddress:''}${cMobile?' &nbsp;|&nbsp; Mb. '+cMobile:''}</div>
+                <div class="disc">Once Paid Fees Not Return Under Any Circumstance.</div>
+            </div>
+            <script>window.onload=()=>{window.print();}<\/script>
+            </body></html>`);
+            win.document.close();
+        }
+
+        // ── PDF — Login user branding ──
+        function qlPDF() {
+            const type  = document.getElementById('qlModal').dataset.type;
+            const title = document.getElementById('qlModalTitle').textContent;
+            const q     = (document.getElementById('qlSearch').value||'').trim();
+            const qLow  = q.toLowerCase();
+            const currentMonth = new Date().toISOString().substring(0,7);
+            const date  = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+            // Login user center info
+            const ci    = window.currentCenterInfo || {};
+            const cName    = ci.centerName    || 'ICS COMPUTERS';
+            const cAddress = ci.centerAddress || 'Near Old Nagar Palika, Sali Lane, Yeola';
+            const cMobile  = ci.centerMobile  || '9822053668';
+            const cUser    = currentLoggedInUser ? currentLoggedInUser.username : '';
+            const cRole    = currentLoggedInUser ? currentLoggedInUser.role     : '';
+
+            let list = [...students];
+            if (type==='collected') list = list.filter(s => s.paidFees > 0);
+            if (type==='pending')   list = list.filter(s => s.balance > 0);
+            if (type==='month')     list = list.filter(s => s.addedDate && s.addedDate.substring(0,7) === currentMonth);
+            if (qLow) list = list.filter(s =>
+                s.name.toLowerCase().includes(qLow) ||
+                (s.mobile||'').includes(qLow) ||
+                (s.course||'').toLowerCase().includes(qLow) ||
+                String(s.receiptNo||'').includes(qLow)
+            );
+            const sorted = [...list].sort((a,b)=>(b.receiptNo||0)-(a.receiptNo||0));
+            if (!sorted.length) { alert('⚠️ PDF साठी डेटा नाही!'); return; }
+
+            const isClientFilter = q.length > 0;
+            const clientName = isClientFilter ? q.toUpperCase() : '';
+            const rawTitle   = isClientFilter
+                ? 'FEES REPORT - '+clientName
+                : title.replace(/[^\x00-\x7F]/g,'').trim() || 'LIST';
+
+            const {jsPDF} = window.jspdf;
+            const doc = new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+            const W=210, H=297, lx=12, rx=198, cw=186;
+
+            // ── Header ──
+            doc.setFillColor(26,58,74); doc.rect(0,0,W,22,'F');
+            doc.setFillColor(200,115,42); doc.rect(0,22,W,1.5,'F');
+            doc.setTextColor(255,255,255);
+            doc.setFont(undefined,'bold'); doc.setFontSize(14);
+            doc.text(cName.toUpperCase(), W/2, 9, {align:'center'});
+            doc.setFont(undefined,'normal'); doc.setFontSize(7.5);
+            doc.text(cAddress+(cMobile?'  |  Mb. '+cMobile:''), W/2, 15, {align:'center'});
+            if (cUser) {
+                doc.setFontSize(6.5); doc.setTextColor(200,169,126);
+                doc.text('Generated by: '+cUser+(cRole?' ('+cRole+')':'')+'  |  '+date, W/2, 20, {align:'center'});
+            }
+            let y = 27;
+
+            // ── Title bar ──
+            doc.setFillColor(30,77,94); doc.rect(lx,y,cw,8,'F');
+            doc.setTextColor(200,169,126); doc.setFont(undefined,'bold'); doc.setFontSize(11);
+            doc.text(rawTitle, W/2, y+5.5, {align:'center', maxWidth:cw-4}); y+=11;
+            doc.setFontSize(7.5); doc.setTextColor(130,140,150); doc.setFont(undefined,'normal');
+            const subInfo = isClientFilter?'Individual Student Report'
+                :(type==='month'?new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}):'All Records');
+            doc.text(subInfo, lx, y);
+            doc.text('Date: '+date, rx, y, {align:'right'}); y+=5;
+
+            // ── Single student detail box ──
+            if (isClientFilter && sorted.length===1) {
+                const s = sorted[0];
+                doc.setFillColor(248,249,250); doc.rect(lx,y,cw,18,'F');
+                doc.setDrawColor(180,200,215); doc.setLineWidth(0.4); doc.rect(lx,y,cw,18);
+                doc.setTextColor(30,30,30); doc.setFont(undefined,'bold'); doc.setFontSize(8);
+                doc.text('Student Details', lx+3, y+5);
+                doc.setFont(undefined,'normal'); doc.setFontSize(7.5); doc.setTextColor(60,60,60);
+                doc.text('Name: '+s.name, lx+3, y+10);
+                doc.text('Mobile: '+(s.mobile||'—'), lx+3, y+15);
+                doc.text('Receipt: #'+(s.receiptNo||'—'), lx+70, y+10);
+                doc.text('Course: '+(s.course||'—'), lx+70, y+15);
+                doc.text('Date: '+(s.addedDate||'—'), lx+130, y+10);
+                const stLabel = s.balance===0?'Fully Paid':s.paidFees>0?'Partial':'Pending';
+                const stRgb   = s.balance===0?[27,107,60]:s.paidFees>0?[122,79,0]:[139,0,0];
+                doc.setTextColor(stRgb[0],stRgb[1],stRgb[2]); doc.setFont(undefined,'bold');
+                doc.text('Status: '+stLabel, lx+130, y+15);
+                y += 22;
+            }
+
+            // ── Summary boxes ──
+            const totalFees = sorted.reduce((s,x)=>s+(x.totalFees||0),0);
+            const totalPaid = sorted.reduce((s,x)=>s+(x.paidFees||0),0);
+            const totalBal  = sorted.reduce((s,x)=>s+(x.balance||0),0);
+            const boxW = cw/4;
+            [{label:'Total Students',val:String(sorted.length),c:[26,82,118]},
+             {label:'Total Fees',val:'Rs.'+totalFees.toLocaleString('en-IN'),c:[30,77,94]},
+             {label:'Collected',val:'Rs.'+totalPaid.toLocaleString('en-IN'),c:[27,94,50]},
+             {label:'Pending',val:'Rs.'+totalBal.toLocaleString('en-IN'),c:[120,26,26]},
+            ].forEach((b,i)=>{
+                const bx=lx+i*boxW;
+                doc.setFillColor(b.c[0],b.c[1],b.c[2]); doc.rect(bx,y,boxW-2,14,'F');
+                doc.setTextColor(255,255,255);
+                doc.setFont(undefined,'bold'); doc.setFontSize(9.5);
+                doc.text(b.val,bx+(boxW-2)/2,y+6.5,{align:'center',maxWidth:boxW-4});
+                doc.setFont(undefined,'normal'); doc.setFontSize(6.5);
+                doc.text(b.label,bx+(boxW-2)/2,y+11,{align:'center'});
+            });
+            y+=18;
+
+            // ── Table header ──
+            const cols=[8,14,50,28,24,24,24,14];
+            const heads=['#','Rec.','Student Name','Course','Total','Paid','Balance','Status'];
+            doc.setFillColor(26,58,74); doc.rect(lx,y,cw,7,'F');
+            doc.setTextColor(200,169,126); doc.setFont(undefined,'bold'); doc.setFontSize(7.5);
+            let cx=lx;
+            heads.forEach((h,i)=>{doc.text(h,cx+cols[i]/2,y+4.8,{align:'center'});cx+=cols[i];});
+            y+=7;
+
+            // ── Table rows ──
+            const tableStartY=y;
+            sorted.forEach((s,i)=>{
+                if(y>270){doc.addPage();y=15;}
+                const st=s.balance===0?'Paid':s.paidFees>0?'Partial':'Pending';
+                const sc=s.balance===0?[39,174,96]:s.paidFees>0?[200,115,42]:[192,57,43];
+                doc.setFillColor(i%2===0?255:238,i%2===0?252:246,i%2===0?250:243);
+                doc.rect(lx,y,cw,7,'F');
+                doc.setTextColor(50,50,50); doc.setFont(undefined,'normal'); doc.setFontSize(7.5);
+                cx=lx;
+                [String(i+1),'#'+(s.receiptNo||''),s.name,s.course||'—',
+                 'Rs.'+(s.totalFees||0).toLocaleString('en-IN'),
+                 'Rs.'+(s.paidFees||0).toLocaleString('en-IN'),
+                 'Rs.'+(s.balance||0).toLocaleString('en-IN'),st
+                ].forEach((v,j)=>{
+                    if(j===7){doc.setTextColor(sc[0],sc[1],sc[2]);doc.setFont(undefined,'bold');}
+                    if(j===2||j===3) doc.text(v,cx+2,y+4.8,{maxWidth:cols[j]-3});
+                    else doc.text(v,cx+cols[j]/2,y+4.8,{align:'center',maxWidth:cols[j]-1});
+                    doc.setTextColor(50,50,50);doc.setFont(undefined,'normal');
+                    cx+=cols[j];
+                });
+                doc.setDrawColor(180,200,215);doc.setLineWidth(0.15);
+                doc.line(lx,y+7,rx,y+7);
+                y+=7;
+            });
+            doc.setDrawColor(26,58,74);doc.setLineWidth(0.4);
+            doc.rect(lx,tableStartY-7,cw,y-tableStartY+7);
+
+            // ── Footer ──
+            doc.setFillColor(26,58,74); doc.rect(0,H-12,W,12,'F');
+            doc.setFillColor(200,115,42); doc.rect(0,H-12,W,1.5,'F');
+            doc.setTextColor(255,255,255); doc.setFont(undefined,'normal'); doc.setFontSize(7);
+            doc.text(cName.toUpperCase()+(cAddress?' — '+cAddress:'')+(cMobile?'  |  Mb. '+cMobile:''), W/2, H-6.5, {align:'center'});
+            if (cUser) {
+                doc.setFontSize(6); doc.setTextColor(200,169,126);
+                doc.text('Generated by: '+cUser+(cRole?' ('+cRole+')':''), W/2, H-2.5, {align:'center'});
+            }
+
+            // ── Filename ──
+            const safeName = isClientFilter
+                ? cName.replace(/\s+/g,'_')+'_'+clientName.replace(/\s+/g,'_')+'_Report_'+date.replace(/\s/g,'')
+                : cName.replace(/\s+/g,'_')+'_'+rawTitle.replace(/\s+/g,'_')+'_'+date.replace(/\s/g,'');
+            doc.save(safeName+'.pdf');
+        }
     </script>
+
+<!-- ════════════════════════════════════════
+     QUICK LIST MODAL
+════════════════════════════════════════ -->
+<div id="qlModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9999;justify-content:center;align-items:center;padding:15px;">
+  <div style="background:#0f1e2a;border:1px solid #1e3040;border-radius:18px;width:100%;max-width:920px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.65);">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1a3a4a,#1e4d5e);padding:16px 22px;border-radius:18px 18px 0 0;border-bottom:2.5px solid #c8732a;display:flex;justify-content:space-between;align-items:center;">
+      <h3 id="qlModalTitle" style="margin:0;color:#c8a97e;font-size:1.1em;font-family:'Playfair Display',serif;"></h3>
+      <button onclick="closeQLModal()" style="background:none;border:none;color:#7a8a9a;font-size:1.5em;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+    </div>
+
+    <!-- Search + Buttons -->
+    <div style="padding:14px 18px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="qlSearch" placeholder="🔍 Name / Course / Mobile / Receipt शोधा..."
+        style="flex:1;min-width:180px;padding:9px 14px;border:1.5px solid #1e3040;border-radius:9px;background:#162230;color:#e0d8cc;font-size:0.92em;outline:none;font-family:inherit;">
+      <button onclick="qlPrint()"
+        style="background:linear-gradient(135deg,#1a3a4a,#1e4d5e);color:#c8a97e;border:1.5px solid #c8732a;padding:9px 18px;border-radius:9px;cursor:pointer;font-weight:700;font-size:0.88em;white-space:nowrap;">
+        🖨️ Print
+      </button>
+      <button onclick="qlPDF()"
+        style="background:linear-gradient(135deg,#7a4f10,#c8732a);color:#fff;border:none;padding:9px 18px;border-radius:9px;cursor:pointer;font-weight:700;font-size:0.88em;white-space:nowrap;">
+        📄 PDF Download
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div id="qlBody" style="padding:14px 18px 18px;overflow-y:auto;flex:1;"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     COURSE MANAGER MODAL
+════════════════════════════════════════ -->
+<div id="courseManagerModal" style="display:none; position:fixed; inset:0; background:rgba(10,25,35,0.78); backdrop-filter:blur(3px); z-index:5000; justify-content:center; align-items:center; padding:20px;">
+  <div style="background:var(--bg-panel); border-radius:16px; padding:30px; max-width:420px; width:100%; max-height:88vh; overflow-y:auto; box-shadow:0 20px 60px rgba(10,25,35,0.45); border:1px solid rgba(255,255,255,0.5);">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1a3a4a,#1e4d5e); color:white; padding:16px 20px; border-radius:10px 10px 0 0; margin:-30px -30px 22px -30px; border-bottom:3px solid #c8732a; display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="font-family:'Playfair Display',serif; font-size:1.15em; color:white; margin:0;">&#128218; Course Manager</h2>
+      <button onclick="closeCourseManager()" style="background:linear-gradient(135deg,#8b2a2a,#b03a3a); color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.15em; line-height:1;">&#215;</button>
+    </div>
+
+    <!-- Add new course -->
+    <div style="background:rgba(30,77,94,0.07); border-radius:10px; padding:16px; margin-bottom:18px; border:1px solid rgba(30,77,94,0.13);">
+      <div style="font-weight:700; color:var(--primary); font-size:0.88em; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">&#10133; नवीन Course जोडा</div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="newCourseName" placeholder="Course नाव टाका..." maxlength="50"
+          style="flex:1; padding:10px 13px; border:2px solid var(--border); border-radius:8px; font-size:0.95em; background:#fdfaf6; color:var(--text-dark); font-family:'DM Sans',sans-serif; outline:none;"
+          onkeydown="if(event.key==='Enter') addNewCourse()">
+        <button onclick="addNewCourse()"
+          style="padding:10px 16px; background:linear-gradient(135deg,#1a3a4a,#1e4d5e); color:#c8a97e; border:2px solid #c8732a; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.88em; white-space:nowrap;">
+          &#10003; Add
+        </button>
+      </div>
+      <div id="courseAddMsg" style="margin-top:8px; font-size:0.83em; display:none;"></div>
+    </div>
+
+    <!-- Course list -->
+    <div style="font-weight:700; color:var(--primary); font-size:0.88em; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">&#128203; सध्याचे Courses</div>
+    <div id="courseListContainer" style="border:1px solid var(--border); border-radius:10px; overflow:hidden; background:white;"></div>
+
+    <div style="margin-top:16px; font-size:0.78em; color:var(--text-light); text-align:center;">
+      &#128161; Default courses delete करता येत नाहीत &middot; Custom courses कधीही delete करता येतात
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Course Manager ──
+var DEFAULT_COURSES = ['MS-CIT','Tally','Typing','Graphics','Coding','Advanced Excel','DTP'];
+
+function getCourses() {
+    var stored = localStorage.getItem('icsCourses');
+    if (stored) return JSON.parse(stored);
+    localStorage.setItem('icsCourses', JSON.stringify(DEFAULT_COURSES));
+    return DEFAULT_COURSES.slice();
+}
+
+function saveCourses(list) {
+    localStorage.setItem('icsCourses', JSON.stringify(list));
+}
+
+function populateCourseDropdowns() {
+    var courses = getCourses();
+    var selectors = ['#course', '#reportCourseFilter'];
+    selectors.forEach(function(sel) {
+        var el = document.querySelector(sel);
+        if (!el) return;
+        var prev = el.value;
+        var isReport = sel === '#reportCourseFilter';
+        el.innerHTML = isReport
+            ? '<option value="all">All Courses</option>'
+            : '<option value="">Select Course</option>';
+        courses.forEach(function(c) {
+            var opt = document.createElement('option');
+            opt.value = c; opt.textContent = c;
+            el.appendChild(opt);
+        });
+        if (prev) el.value = prev;
+    });
+}
+
+function openCourseManager() {
+    renderCourseList();
+    document.getElementById('courseManagerModal').style.display = 'flex';
+    document.getElementById('newCourseName').value = '';
+    hideAddMsg();
+    setTimeout(function(){ document.getElementById('newCourseName').focus(); }, 100);
+}
+
+function closeCourseManager() {
+    document.getElementById('courseManagerModal').style.display = 'none';
+    populateCourseDropdowns();
+}
+
+function renderCourseList() {
+    var courses = getCourses();
+    var container = document.getElementById('courseListContainer');
+    if (courses.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#7a8a92; font-size:0.88em;">कोणतेही courses नाहीत.</div>';
+        return;
+    }
+    container.innerHTML = courses.map(function(c, i) {
+        var isDefault = DEFAULT_COURSES.indexOf(c) !== -1;
+        var border = i < courses.length-1 ? 'border-bottom:1px solid #ede6db;' : '';
+        var safeC = c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return '<div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; ' + border + ' gap:8px;">'
+            + '<div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">'
+            + '<span style="font-size:0.85em;">' + (isDefault ? '&#128204;' : '&#128216;') + '</span>'
+            + '<span style="font-size:0.92em; font-weight:600; color:var(--text-dark); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + c + '</span>'
+            + (isDefault
+                ? '<span style="font-size:0.7em; background:#e8f4fb; color:#1a6b7a; padding:2px 7px; border-radius:8px; font-weight:600; flex-shrink:0;">Default</span>'
+                : '<span style="font-size:0.7em; background:#e8f5e9; color:#1b5e20; padding:2px 7px; border-radius:8px; font-weight:600; flex-shrink:0;">Custom</span>')
+            + '</div>'
+            + (isDefault
+                ? '<button disabled style="padding:5px 11px; background:#f0f0f0; color:#aaa; border:1px solid #ddd; border-radius:6px; font-size:0.78em; cursor:not-allowed;">&#128274; Lock</button>'
+                : '<button onclick="deleteCourse(\'' + safeC + '\')" style="padding:5px 11px; background:#fce8e8; color:#5c1a1a; border:1px solid #e8aaaa; border-radius:6px; font-size:0.78em; font-weight:700; cursor:pointer;">&#128465; Delete</button>')
+            + '</div>';
+    }).join('');
+}
+
+function addNewCourse() {
+    var inp = document.getElementById('newCourseName');
+    var name = inp.value.trim();
+    if (!name) {
+        showAddMsg('&#9888;&#65039; Course नाव रिकामे आहे!', '#7a4f10', '#fff8e6', '#f5cc84');
+        return;
+    }
+    var courses = getCourses();
+    var lower = courses.map(function(c){ return c.toLowerCase(); });
+    if (lower.indexOf(name.toLowerCase()) !== -1) {
+        showAddMsg('&#9888;&#65039; हे course आधीच आहे!', '#7a4f10', '#fff8e6', '#f5cc84');
+        return;
+    }
+    courses.push(name);
+    saveCourses(courses);
+    inp.value = '';
+    showAddMsg('&#9989; "' + name + '" course जोडले!', '#1b5e20', '#e8f5e9', '#a8d5b5');
+    renderCourseList();
+    populateCourseDropdowns();
+    var courseEl = document.getElementById('course');
+    if (courseEl) courseEl.value = name;
+}
+
+function deleteCourse(name) {
+    if (!confirm('&#9888;&#65039; "' + name + '" course delete करायचे?')) return;
+    var courses = getCourses().filter(function(c){ return c !== name; });
+    saveCourses(courses);
+    renderCourseList();
+    populateCourseDropdowns();
+}
+
+function showAddMsg(text, color, bg, border) {
+    var el = document.getElementById('courseAddMsg');
+    el.innerHTML = text;
+    el.style.color = color;
+    el.style.background = bg;
+    el.style.border = '1px solid ' + border;
+    el.style.borderRadius = '6px';
+    el.style.padding = '6px 10px';
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(hideAddMsg, 3000);
+}
+
+function hideAddMsg() {
+    var el = document.getElementById('courseAddMsg');
+    if (el) el.style.display = 'none';
+}
+
+// Initialize dropdowns on page load
+populateCourseDropdowns();
+</script>
+
 </body>
 </html>
