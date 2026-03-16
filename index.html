@@ -824,6 +824,121 @@
         .value.warn { color: var(--accent); }
         .value.danger { color: var(--danger); }
 
+        /* ══════════════════════════════════════
+           TAB NAVIGATION
+        ══════════════════════════════════════ */
+        .tab-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1a3a4a 0%, #1e4d5e 100%);
+            padding: 10px 12px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(10,30,40,0.3);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 11px 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.7);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+            border: 1.5px solid transparent;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.13);
+            color: white;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #c8732a 0%, #e8893a 100%);
+            color: white;
+            border-color: rgba(255,255,255,0.25);
+            box-shadow: 0 4px 14px rgba(200,115,42,0.45);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ══════════════════════════════════════
+           CENTER EXPENSES TAB
+        ══════════════════════════════════════ */
+        .expense-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .expense-card {
+            background: rgba(30,77,94,0.06);
+            border-radius: 10px;
+            padding: 14px 16px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(30,77,94,0.13);
+        }
+        .expense-card:hover { background: rgba(30,77,94,0.1); }
+        .expense-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .exp-stat {
+            background: linear-gradient(135deg, #1a3a4a, #1e4d5e);
+            color: white;
+            padding: 16px 14px;
+            border-radius: 12px;
+            text-align: center;
+            border-bottom: 3px solid rgba(200,115,42,0.6);
+        }
+        .exp-stat-val { font-size: 1.5em; font-weight: 700; font-family: 'Oswald', sans-serif; }
+        .exp-stat-lbl { font-size: 0.75em; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
+
+        /* ══════════════════════════════════════
+           STUDENT ENQUIRY TAB
+        ══════════════════════════════════════ */
+        .enquiry-card {
+            background: rgba(30,77,94,0.05);
+            border-radius: 10px;
+            padding: 15px 18px;
+            border: 1px solid rgba(30,77,94,0.12);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .enquiry-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+        }
+        .enq-hot { background: #ffe0e0; color: #7a1a1a; border: 1px solid #f5aaaa; }
+        .enq-warm { background: #fff3e0; color: #7a4f10; border: 1px solid #f5cc84; }
+        .enq-cold { background: #e0f0ff; color: #1a3a7a; border: 1px solid #a8c8f5; }
+        .enq-converted { background: #e0f5e9; color: #1a5e30; border: 1px solid #a8d5b5; }
+
         /* Header right area for logout */
         .header-actions {
             position: absolute;
@@ -874,6 +989,33 @@
 
         <!-- Expiry Warning Banner -->
         <div id="expiryBanner"></div>
+
+        <!-- ═══ APP CONTENT (shown after login) ═══ -->
+        <div id="appContent" style="display:none;">
+
+        <!-- ═══ TAB NAVIGATION ═══ -->
+        <div class="tab-nav" id="mainTabNav">
+            <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">
+                📊 Dashboard
+            </button>
+            <button class="tab-btn" onclick="switchTab('receipt')" id="tab-receipt">
+                🧾 Payment Receipt
+            </button>
+            <button class="tab-btn" onclick="switchTab('enquiry')" id="tab-enquiry">
+                📋 Student Enquiry
+            </button>
+            <button class="tab-btn" onclick="switchTab('expenses')" id="tab-expenses">
+                💸 Center Expenses
+            </button>
+            <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings">
+                ⚙️ Settings
+            </button>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             TAB 1: DASHBOARD
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content active" id="tabContent-dashboard">
 
         <!-- Statistics Dashboard -->
         <div class="stats-grid">
@@ -934,6 +1076,11 @@
                                 onmouseover="this.style.background='linear-gradient(135deg,#1e4d5e,#2a6d84)'"
                                 onmouseout="this.style.background='linear-gradient(135deg,#1a3a4a,#1e4d5e)'">⚙️</button>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Admission Date</label>
+                        <input type="date" id="admissionDate">
                     </div>
 
                     <div class="form-row">
@@ -1028,7 +1175,324 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
+        </div><!-- end tab-dashboard -->
+
+        <!-- ═══════════════════════════════════════════
+             TAB 2: PAYMENT RECEIPT
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content" id="tabContent-receipt">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>🧾 Payment Receipt</h2>
+            </div>
+            <div class="info-box">📌 Student शोधा आणि त्याची Receipt बघा / Download करा</div>
+
+            <div class="search-box" style="margin-bottom:18px;">
+                <input type="text" id="receiptSearchInput" placeholder="🔍 Name / Mobile / Receipt No. टाका...">
+                <button class="btn btn-primary" onclick="searchForReceipt()">🔍 Search</button>
+                <button class="btn btn-info" onclick="showAllForReceipt()">Show All</button>
+            </div>
+
+            <div class="table-wrapper" style="padding:0; background:transparent; box-shadow:none; border:none;">
+            <table class="students-table">
+                <thead>
+                    <tr>
+                        <th>Receipt No.</th>
+                        <th>Student Name</th>
+                        <th>Mobile</th>
+                        <th>Course</th>
+                        <th>Total Fees</th>
+                        <th>Paid Fees</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody id="receiptTableBody">
+                    <tr><td colspan="9" class="empty-state"><div style="font-size:2.5em;">🧾</div><p>Search करून student निवडा</p></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        </div><!-- end tab-receipt -->
+
+        <!-- ═══════════════════════════════════════════
+             TAB 3: STUDENT ENQUIRY
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content" id="tabContent-enquiry">
+        <div class="main-grid">
+            <!-- Add Enquiry Form -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📋 New Enquiry</h2>
+                </div>
+                <div class="info-box">📌 नवीन student enquiry नोंदवा</div>
+
+                <div class="form-group">
+                    <label>Student Name <span class="required">*</span></label>
+                    <input type="text" id="enqName" placeholder="पूर्ण नाव टाका">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number <span class="required">*</span></label>
+                    <input type="tel" id="enqMobile" placeholder="10-digit number" maxlength="10">
+                </div>
+                <div class="form-group">
+                    <label>Interested Course</label>
+                    <select id="enqCourse">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Enquiry Date</label>
+                    <input type="date" id="enqDate">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="enqStatus">
+                        <option value="hot">🔴 Hot (लवकर येणार)</option>
+                        <option value="warm">🟡 Warm (विचार करतोय)</option>
+                        <option value="cold">🔵 Cold (नक्की नाही)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes / Remark</label>
+                    <input type="text" id="enqNote" placeholder="कोणत्याही notes...">
+                </div>
+                <button class="btn btn-primary" onclick="addEnquiry()">➕ Add Enquiry</button>
+            </div>
+
+            <!-- Enquiry List -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📊 Enquiry List</h2>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <select id="enqFilterStatus" onchange="renderEnquiries()" style="padding:6px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); color:white; font-family:'DM Sans',sans-serif; font-size:0.82em;">
+                            <option value="all">All</option>
+                            <option value="hot">🔴 Hot</option>
+                            <option value="warm">🟡 Warm</option>
+                            <option value="cold">🔵 Cold</option>
+                            <option value="converted">✅ Converted</option>
+                        </select>
+                        <button onclick="exportEnquiryExcel()" title="Excel मध्ये export करा"
+                            style="padding:6px 13px; background:linear-gradient(135deg,#1b5e20,#2d8a3e); color:white; border:1.5px solid #81c784; border-radius:7px; cursor:pointer; font-size:0.82em; font-weight:700; display:flex; align-items:center; gap:5px; white-space:nowrap;">
+                            📊 Excel Export
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;" id="enqStatsRow">
+                    <div class="exp-stat" style="background:linear-gradient(135deg,#5c1a1a,#8b2a2a);">
+                        <div class="exp-stat-val" id="enqCountHot">0</div>
+                        <div class="exp-stat-lbl">🔴 Hot</div>
+                    </div>
+                    <div class="exp-stat" style="background:linear-gradient(135deg,#7a4f10,#c8732a);">
+                        <div class="exp-stat-val" id="enqCountWarm">0</div>
+                        <div class="exp-stat-lbl">🟡 Warm</div>
+                    </div>
+                    <div class="exp-stat" style="background:linear-gradient(135deg,#1b4332,#2d6a4f);">
+                        <div class="exp-stat-val" id="enqCountConverted">0</div>
+                        <div class="exp-stat-lbl">✅ Converted</div>
+                    </div>
+                </div>
+
+                <div id="enquiryListContainer">
+                    <div class="empty-state"><div style="font-size:2.5em;">📋</div><p>कोणतीही enquiry नाही. वरून add करा.</p></div>
+                </div>
+            </div>
+        </div>
+        </div><!-- end tab-enquiry -->
+
+        <!-- ═══════════════════════════════════════════
+             TAB 4: CENTER EXPENSES
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content" id="tabContent-expenses">
+        <div class="main-grid">
+            <!-- Add Expense Form -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>💸 Add Expense</h2>
+                </div>
+                <div class="info-box">📌 Center चा खर्च नोंदवा</div>
+
+                <div class="form-group">
+                    <label>खर्चाचे वर्णन <span class="required">*</span></label>
+                    <input type="text" id="expDesc" placeholder="उदा. Electricity Bill, Rent, Internet...">
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹) <span class="required">*</span></label>
+                    <input type="number" id="expAmount" placeholder="₹" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="expCategory">
+                        <option value="Rent">🏠 Rent</option>
+                        <option value="Electricity">💡 Electricity</option>
+                        <option value="Internet">🌐 Internet</option>
+                        <option value="Salary">👤 Salary</option>
+                        <option value="Stationery">📎 Stationery</option>
+                        <option value="Equipment">💻 Equipment</option>
+                        <option value="Maintenance">🔧 Maintenance</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="expDate">
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="expMode">
+                        <option value="Cash">💵 Cash</option>
+                        <option value="UPI">📱 UPI</option>
+                        <option value="Bank Transfer">🏦 Bank Transfer</option>
+                        <option value="Cheque">📋 Cheque</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <input type="text" id="expNotes" placeholder="Additional notes...">
+                </div>
+                <button class="btn btn-primary" onclick="addExpense()">➕ Add Expense</button>
+            </div>
+
+            <!-- Expense List & Summary -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📊 Expense Summary</h2>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <select id="expMonthFilter" onchange="renderExpenses()" style="padding:6px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); color:white; font-family:'DM Sans',sans-serif; font-size:0.82em;">
+                            <option value="all">All Time</option>
+                            <option value="thismonth">This Month</option>
+                            <option value="lastmonth">Last Month</option>
+                        </select>
+                        <button onclick="exportExpensePDF()" style="padding:6px 12px; background:linear-gradient(135deg,#c8732a,#e8893a); color:white; border:none; border-radius:7px; cursor:pointer; font-size:0.8em; font-weight:700;">📄 PDF</button>
+                    </div>
+                </div>
+
+                <div class="expense-stats" id="expenseSummaryCards">
+                    <div class="exp-stat">
+                        <div class="exp-stat-val" id="expTotalAmt">₹0</div>
+                        <div class="exp-stat-lbl">Total Expenses</div>
+                    </div>
+                    <div class="exp-stat" style="background:linear-gradient(135deg,#5c1a1a,#8b2a2a);">
+                        <div class="exp-stat-val" id="expMonthAmt">₹0</div>
+                        <div class="exp-stat-lbl">This Month</div>
+                    </div>
+                    <div class="exp-stat" style="background:linear-gradient(135deg,#1b4332,#2d6a4f);">
+                        <div class="exp-stat-val" id="expNetProfit">₹0</div>
+                        <div class="exp-stat-lbl">Net Profit</div>
+                    </div>
+                </div>
+
+                <div id="expenseListContainer">
+                    <div class="empty-state"><div style="font-size:2.5em;">💸</div><p>कोणताही खर्च नाही. वरून add करा.</p></div>
+                </div>
+            </div>
+        </div>
+        </div><!-- end tab-expenses -->
+
+        <!-- ═══════════════════════════════════════════
+             TAB 5: SETTINGS
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content" id="tabContent-settings">
+        <div style="max-width:700px; margin:0 auto; display:grid; gap:20px;">
+
+            <!-- Center Information -->
+            <div class="panel">
+                <div class="panel-header"><h2>🏫 Center Information</h2></div>
+                <div class="info-box">📌 Center ची माहिती update करा — Receipt वर दिसेल</div>
+                <div class="form-group">
+                    <label>Center Name</label>
+                    <input type="text" id="settCenterName" placeholder="उदा. ICS Computers">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="settCenterAddress" placeholder="उदा. Near ST Stand, Yeola">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="settCenterMobile" placeholder="9876543210" maxlength="10">
+                </div>
+                <button class="btn btn-primary" onclick="saveCenterInfo()">💾 Save Center Info</button>
+            </div>
+
+            <!-- Password Change -->
+            <div class="panel">
+                <div class="panel-header"><h2>🔒 Change My Password</h2></div>
+                <div class="info-box" id="pwdChangeUserInfo">📌 तुम्ही तुमचा स्वतःचा password change करू शकता</div>
+                <div class="form-group">
+                    <label>Current Password <span class="required">*</span></label>
+                    <div style="position:relative;">
+                        <input type="password" id="settCurrentPwd" placeholder="सध्याचा password टाका"
+                            style="width:100%; padding:11px 44px 11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;">
+                        <span onclick="toggleSettPwd('settCurrentPwd')" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1em;">👁️</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>New Password <span class="required">*</span></label>
+                    <div style="position:relative;">
+                        <input type="password" id="settNewPwd" placeholder="नवीन password (min 4 chars)"
+                            style="width:100%; padding:11px 44px 11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;">
+                        <span onclick="toggleSettPwd('settNewPwd')" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1em;">👁️</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password <span class="required">*</span></label>
+                    <div style="position:relative;">
+                        <input type="password" id="settConfirmPwd" placeholder="नवीन password पुन्हा टाका"
+                            style="width:100%; padding:11px 44px 11px 14px; border:2px solid var(--border); border-radius:8px; font-size:0.97em; background:#fdfaf6; font-family:'DM Sans',sans-serif;">
+                        <span onclick="toggleSettPwd('settConfirmPwd')" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1em;">👁️</span>
+                    </div>
+                </div>
+                <div id="pwdStrengthMsg" style="display:none; margin-bottom:10px; padding:8px 12px; border-radius:7px; font-size:0.85em; font-weight:600;"></div>
+                <button class="btn btn-success" onclick="changePasswordFromSettings()" style="width:100%;">🔑 Update My Password</button>
+            </div>
+
+            <!-- Course Manager shortcut -->
+            <div class="panel">
+                <div class="panel-header"><h2>📚 Course Manager</h2></div>
+                <div class="info-box">📌 Courses add / delete करा</div>
+                <button class="btn btn-primary" onclick="openCourseManager()">⚙️ Open Course Manager</button>
+            </div>
+
+            <!-- Data Management (Admin only) -->
+            <div class="panel admin-only-setting">
+                <div class="panel-header"><h2>🗄️ Data Management</h2></div>
+                <div style="display:grid; gap:12px;">
+                    <button class="btn" style="background:linear-gradient(135deg,#2d5016,#4a7c22); color:white; border-bottom:3px solid #8bc34a;" onclick="backupData()">💾 Backup Data (JSON)</button>
+                    <button class="btn" style="background:linear-gradient(135deg,#1a3060,#2d4fa8); color:white; border-bottom:3px solid #7b9ef0;" onclick="document.getElementById('restoreFileInput2').click()">📂 Restore Data (JSON)</button>
+                    <input type="file" id="restoreFileInput2" accept=".json" style="display:none;" onchange="restoreData(event)">
+                    <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+                    <button class="btn" style="background:linear-gradient(135deg,#7c3aed,#6d28d9); color:white; border-bottom:3px solid #a78bfa;" onclick="exportToTally()">📥 Export to Tally (XML)</button>
+                    <div style="border-top:2px dashed var(--border); margin:4px 0;"></div>
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Student Data</button>
+                    <button class="btn" style="background:linear-gradient(135deg,#6b1a1a,#a02020); color:white; border-bottom:3px solid #e05555;" onclick="clearAndResetStorage()">🔄 Clear &amp; Reset All Storage</button>
+                </div>
+            </div>
+
+            <!-- License / Expiry Info (Admin only) -->
+            <div class="panel admin-only-setting">
+                <div class="panel-header"><h2>🔑 License Status</h2></div>
+                <div class="expiry-status-bar" style="background:white; border-radius:8px; padding:12px 14px; margin-bottom:10px; border:1px solid var(--border); display:flex; justify-content:space-between;">
+                    <span style="color:var(--text-mid);">Expiry Date:</span>
+                    <span class="value" id="settExpiryDisplay" style="font-weight:700;">—</span>
+                </div>
+                <div class="expiry-status-bar" style="background:white; border-radius:8px; padding:12px 14px; border:1px solid var(--border); display:flex; justify-content:space-between;">
+                    <span style="color:var(--text-mid);">Days Remaining:</span>
+                    <span class="value" id="settDaysDisplay" style="font-weight:700;">—</span>
+                </div>
+                <div style="margin-top:12px; font-size:0.82em; color:var(--text-light); text-align:center;">
+                    📞 License renew साठी: <strong>ICS Computers — 9822053668</strong>
+                </div>
+            </div>
+
+        </div>
+        </div><!-- end tab-settings -->
+
+        </div><!-- end #appContent -->
+
+    </div><!-- end .container -->
 
     <!-- Generate Report Modal -->
     <div class="modal" id="generateReportModal" style="display:none;">
@@ -1460,8 +1924,20 @@
                 // Show/hide admin settings button based on role
                 const adminBtn = document.querySelector('.admin-panel-btn');
                 if (adminBtn) adminBtn.style.display = matchedUser.role === 'admin' ? 'flex' : 'none';
+                // Show app content
+                const appContent = document.getElementById('appContent');
+                if (appContent) appContent.style.display = 'block';
+                const tabNav = document.getElementById('mainTabNav');
+                if (tabNav) tabNav.style.display = 'flex';
                 showExpiryBanner();
                 updateAdminSettingsDisplay();
+                // Set today dates for new tab forms
+                const todayStr = new Date().toISOString().split('T')[0];
+                ['enqDate','expDate'].forEach(function(id){ var el=document.getElementById(id); if(el && !el.value) el.value=todayStr; });
+                var admEl = document.getElementById('admissionDate');
+                if (admEl && !admEl.value) admEl.valueAsDate = new Date();
+                populateEnquiryCourseDrop();
+                switchTab('dashboard');
             } else {
                 loginAttempts++;
                 inp.value = '';
@@ -1492,9 +1968,15 @@
             loginAttempts = 0;
             currentLoggedInUser = null;
             resetBranding();
-            // Hide admin button on logout
+            // Hide admin button and app content on logout
             const adminBtn = document.querySelector('.admin-panel-btn');
             if (adminBtn) adminBtn.style.display = 'none';
+            const appContent = document.getElementById('appContent');
+            if (appContent) appContent.style.display = 'none';
+            const tabNav = document.getElementById('mainTabNav');
+            if (tabNav) tabNav.style.display = 'none';
+            // Reset to dashboard tab (hidden)
+            switchTab('dashboard');
             document.getElementById('loginScreen').style.display = 'flex';
             closeAdminSettings();
         }
@@ -3077,6 +3559,22 @@ ${paymentsText}
             tmr.setDate(tmr.getDate() + 1);
             const minDate = document.getElementById('newExpiryDate');
             if (minDate) minDate.min = tmr.toISOString().split('T')[0];
+
+            // 5. Set today's date in new tab forms
+            var today = new Date();
+            var todayStr = today.toISOString().split('T')[0];
+            var enqDateEl = document.getElementById('enqDate');
+            if (enqDateEl) enqDateEl.value = todayStr;
+            var expDateEl = document.getElementById('expDate');
+            if (expDateEl) expDateEl.value = todayStr;
+            var admDateEl = document.getElementById('admissionDate');
+            if (admDateEl) admDateEl.valueAsDate = today;
+
+            // 6. Populate enquiry dropdown
+            populateEnquiryCourseDrop();
+
+            // 7. Set active tab to dashboard
+            switchTab('dashboard');
         });
 
         // Close modal on outside click
@@ -3540,6 +4038,562 @@ ${paymentsText}
 </div>
 
 <script>
+// ══════════════════════════════════════════════
+// TAB NAVIGATION
+// ══════════════════════════════════════════════
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tabContent-' + tabId).classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+
+    // Refresh tab-specific data
+    if (tabId === 'receipt') renderReceiptTab();
+    if (tabId === 'enquiry') renderEnquiries();
+    if (tabId === 'expenses') renderExpenses();
+    if (tabId === 'settings') loadSettingsTab();
+}
+
+// ══════════════════════════════════════════════
+// PAYMENT RECEIPT TAB
+// ══════════════════════════════════════════════
+function renderReceiptTab(data) {
+    var list = data !== undefined ? data : students;
+    var tbody = document.getElementById('receiptTableBody');
+    if (!tbody) return;
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div style="font-size:2.5em;">🧾</div><p>कोणताही student सापडला नाही.</p></td></tr>';
+        return;
+    }
+    var sorted = list.slice().sort(function(a,b){ return b.receiptNo - a.receiptNo; });
+    tbody.innerHTML = sorted.map(function(s) {
+        var st = s.balance === 0 ? '<span class="badge badge-success">Paid</span>' :
+                 s.paidFees > 0  ? '<span class="badge badge-warning">Partial</span>' :
+                                   '<span class="badge badge-danger">Pending</span>';
+        return '<tr>' +
+            '<td><strong>' + s.receiptNo + '</strong></td>' +
+            '<td>' + s.name + '</td>' +
+            '<td>' + s.mobile + '</td>' +
+            '<td>' + s.course + '</td>' +
+            '<td>₹' + s.totalFees.toLocaleString('en-IN') + '</td>' +
+            '<td>₹' + s.paidFees.toLocaleString('en-IN') + '</td>' +
+            '<td><strong>₹' + s.balance.toLocaleString('en-IN') + '</strong></td>' +
+            '<td>' + st + '</td>' +
+            '<td><button class="btn btn-info btn-small" onclick="downloadReceipt(' + s.id + ')">📄 Download</button>' +
+            (s.balance > 0 ? '<button class="btn btn-success btn-small" onclick="openPaymentModal(' + s.id + '); switchTab(\'dashboard\')" style="margin-top:4px;">💰 Pay</button>' : '') +
+            '</td></tr>';
+    }).join('');
+}
+
+function searchForReceipt() {
+    var term = document.getElementById('receiptSearchInput').value.toLowerCase().trim();
+    if (!term) { renderReceiptTab(); return; }
+    var filtered = students.filter(function(s) {
+        return s.name.toLowerCase().includes(term) ||
+               s.mobile.includes(term) ||
+               String(s.receiptNo).includes(term) ||
+               s.course.toLowerCase().includes(term);
+    });
+    renderReceiptTab(filtered);
+}
+
+function showAllForReceipt() {
+    document.getElementById('receiptSearchInput').value = '';
+    renderReceiptTab();
+}
+
+// ══════════════════════════════════════════════
+// STUDENT ENQUIRY
+// ══════════════════════════════════════════════
+function getEnquiries() {
+    return JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+}
+function saveEnquiries(list) {
+    localStorage.setItem('icsEnquiries', JSON.stringify(list));
+}
+
+function addEnquiry() {
+    var name   = document.getElementById('enqName').value.trim();
+    var mobile = document.getElementById('enqMobile').value.trim();
+    var course = document.getElementById('enqCourse').value;
+    var date   = document.getElementById('enqDate').value;
+    var status = document.getElementById('enqStatus').value;
+    var note   = document.getElementById('enqNote').value.trim();
+
+    if (!name) { alert('⚠️ Student name टाका!'); return; }
+    if (!mobile || mobile.length !== 10) { alert('⚠️ Valid 10-digit mobile number टाका!'); return; }
+
+    var enqs = getEnquiries();
+    enqs.unshift({
+        id: Date.now(),
+        name: name,
+        mobile: mobile,
+        course: course || '—',
+        date: date || new Date().toISOString().split('T')[0],
+        status: status,
+        note: note,
+        addedDate: new Date().toISOString()
+    });
+    saveEnquiries(enqs);
+
+    // Reset form
+    document.getElementById('enqName').value = '';
+    document.getElementById('enqMobile').value = '';
+    document.getElementById('enqCourse').value = '';
+    document.getElementById('enqNote').value = '';
+    document.getElementById('enqDate').valueAsDate = new Date();
+    document.getElementById('enqStatus').value = 'hot';
+
+    renderEnquiries();
+    alert('✅ Enquiry नोंदवली!');
+}
+
+function deleteEnquiry(id) {
+    if (!confirm('⚠️ ही enquiry delete करायची?')) return;
+    saveEnquiries(getEnquiries().filter(function(e){ return e.id !== id; }));
+    renderEnquiries();
+}
+
+function markConverted(id) {
+    var enqs = getEnquiries();
+    var e = enqs.find(function(e){ return e.id === id; });
+    if (e) e.status = 'converted';
+    saveEnquiries(enqs);
+    renderEnquiries();
+}
+
+function renderEnquiries() {
+    var filter = (document.getElementById('enqFilterStatus') || {}).value || 'all';
+    var enqs = getEnquiries();
+    var filtered = filter === 'all' ? enqs : enqs.filter(function(e){ return e.status === filter; });
+
+    // Stats
+    var setTxt = function(id, v) { var el = document.getElementById(id); if(el) el.textContent = v; };
+    setTxt('enqCountHot', enqs.filter(function(e){ return e.status==='hot'; }).length);
+    setTxt('enqCountWarm', enqs.filter(function(e){ return e.status==='warm'; }).length);
+    setTxt('enqCountConverted', enqs.filter(function(e){ return e.status==='converted'; }).length);
+
+    var cont = document.getElementById('enquiryListContainer');
+    if (!cont) return;
+    if (filtered.length === 0) {
+        cont.innerHTML = '<div class="empty-state"><div style="font-size:2.5em;">📋</div><p>कोणतीही enquiry नाही.</p></div>';
+        return;
+    }
+
+    var badges = { hot:'enq-hot', warm:'enq-warm', cold:'enq-cold', converted:'enq-converted' };
+    var labels = { hot:'🔴 Hot', warm:'🟡 Warm', cold:'🔵 Cold', converted:'✅ Converted' };
+
+    cont.innerHTML = filtered.map(function(e) {
+        var badgeCls = badges[e.status] || 'enq-cold';
+        var label = labels[e.status] || e.status;
+        var d = e.date ? new Date(e.date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+        return '<div class="enquiry-card">' +
+            '<div style="flex:1; min-width:0;">' +
+            '<div style="font-weight:700; color:var(--text-dark); font-size:0.95em;">' + e.name + '</div>' +
+            '<div style="font-size:0.82em; color:var(--text-mid); margin-top:3px;">📱 ' + e.mobile + '  •  📚 ' + e.course + '  •  📅 ' + d + '</div>' +
+            (e.note ? '<div style="font-size:0.8em; color:var(--text-light); margin-top:3px; font-style:italic;">💬 ' + e.note + '</div>' : '') +
+            '</div>' +
+            '<div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">' +
+            '<span class="enquiry-badge ' + badgeCls + '">' + label + '</span>' +
+            (e.status !== 'converted' ? '<button onclick="markConverted(' + e.id + ')" style="padding:3px 8px; background:#e0f5e9; color:#1a5e30; border:1px solid #a8d5b5; border-radius:5px; font-size:0.74em; font-weight:700; cursor:pointer;">✅ Converted</button>' : '') +
+            '<button onclick="deleteEnquiry(' + e.id + ')" style="padding:3px 8px; background:#fce8e8; color:#5c1a1a; border:1px solid #e8aaaa; border-radius:5px; font-size:0.74em; font-weight:700; cursor:pointer;">🗑</button>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+}
+
+// ══════════════════════════════════════════════
+// ENQUIRY EXCEL EXPORT
+// ══════════════════════════════════════════════
+function exportEnquiryExcel() {
+    var filter = (document.getElementById('enqFilterStatus') || {}).value || 'all';
+    var allEnqs = getEnquiries();
+
+    // Apply same filter as currently shown in list
+    var data = filter === 'all' ? allEnqs : allEnqs.filter(function(e){ return e.status === filter; });
+
+    if (data.length === 0) {
+        alert('⚠️ Export साठी कोणतीही enquiry नाही!\n\nआधी enquiry add करा किंवा filter बदला.');
+        return;
+    }
+
+    var statusLabels = { hot: 'Hot', warm: 'Warm', cold: 'Cold', converted: 'Converted' };
+    var filterLabel  = filter === 'all' ? 'All' : (statusLabels[filter] || filter);
+    var ci = window.currentCenterInfo || { centerName: 'ICS Computers' };
+
+    // UTF-8 BOM — Excel ला Marathi / special characters साठी
+    var BOM = '\uFEFF';
+
+    // Header rows — Center name + Export info
+    var now = new Date();
+    var dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    var timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    var csv = BOM;
+    csv += '"' + ci.centerName.toUpperCase() + ' — Student Enquiry Report"\n';
+    csv += '"Filter: ' + filterLabel + '  |  Total Records: ' + data.length + '  |  Date: ' + dateStr + ' ' + timeStr + '"\n';
+    csv += '\n'; // blank row for spacing
+
+    // Column headers
+    csv += '"Sr. No.","Student Name","Mobile Number","Interested Course","Enquiry Date","Status","Notes / Remark"\n';
+
+    // Data rows
+    data.forEach(function(e, idx) {
+        var d = e.date
+            ? new Date(e.date).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            : '—';
+        var statusLabel = statusLabels[e.status] || e.status;
+        var note = (e.note || '').replace(/"/g, '""'); // escape double-quotes in notes
+
+        csv += [
+            idx + 1,
+            '"' + (e.name  || '').replace(/"/g, '""') + '"',
+            '"' + (e.mobile || '') + '"',
+            '"' + (e.course || '—') + '"',
+            '"' + d + '"',
+            '"' + statusLabel + '"',
+            '"' + note + '"'
+        ].join(',') + '\n';
+    });
+
+    // Summary rows at bottom
+    csv += '\n';
+    csv += '"Summary"\n';
+    csv += '"Total Enquiries","' + allEnqs.length + '"\n';
+    csv += '"Hot","'       + allEnqs.filter(function(e){ return e.status==='hot';       }).length + '"\n';
+    csv += '"Warm","'      + allEnqs.filter(function(e){ return e.status==='warm';      }).length + '"\n';
+    csv += '"Cold","'      + allEnqs.filter(function(e){ return e.status==='cold';      }).length + '"\n';
+    csv += '"Converted","' + allEnqs.filter(function(e){ return e.status==='converted'; }).length + '"\n';
+
+    // Download
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    var fileName = (ci.centerName.replace(/\s+/g,'_') || 'ICS') +
+                   '_Enquiry_' + filterLabel +
+                   '_' + now.getFullYear() +
+                   '-' + String(now.getMonth()+1).padStart(2,'0') +
+                   '-' + String(now.getDate()).padStart(2,'0') +
+                   '.csv';
+    a.href = url;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('✅ Enquiry Excel export झाली!\n\n📄 File: ' + fileName + '\n📊 Records: ' + data.length + ' (' + filterLabel + ')\n\n💡 Excel मध्ये उघडा — columns आणि data व्यवस्थित दिसेल.');
+}
+
+// Populate enquiry course dropdown
+function populateEnquiryCourseDrop() {
+    var enqCourseEl = document.getElementById('enqCourse');
+    if (!enqCourseEl) return;
+    var courses = getCourses ? getCourses() : [];
+    enqCourseEl.innerHTML = '<option value="">Select Course</option>';
+    courses.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        enqCourseEl.appendChild(opt);
+    });
+}
+
+// ══════════════════════════════════════════════
+// CENTER EXPENSES
+// ══════════════════════════════════════════════
+function getExpenses() {
+    return JSON.parse(localStorage.getItem('icsExpenses') || '[]');
+}
+function saveExpenses(list) {
+    localStorage.setItem('icsExpenses', JSON.stringify(list));
+}
+
+function addExpense() {
+    var desc   = document.getElementById('expDesc').value.trim();
+    var amount = parseFloat(document.getElementById('expAmount').value);
+    var cat    = document.getElementById('expCategory').value;
+    var date   = document.getElementById('expDate').value;
+    var mode   = document.getElementById('expMode').value;
+    var notes  = document.getElementById('expNotes').value.trim();
+
+    if (!desc) { alert('⚠️ खर्चाचे वर्णन टाका!'); return; }
+    if (!amount || amount <= 0) { alert('⚠️ Valid amount टाका!'); return; }
+
+    var exps = getExpenses();
+    exps.unshift({
+        id: Date.now(),
+        desc: desc,
+        amount: amount,
+        category: cat,
+        date: date || new Date().toISOString().split('T')[0],
+        mode: mode,
+        notes: notes,
+        addedDate: new Date().toISOString()
+    });
+    saveExpenses(exps);
+
+    document.getElementById('expDesc').value = '';
+    document.getElementById('expAmount').value = '';
+    document.getElementById('expNotes').value = '';
+    document.getElementById('expDate').valueAsDate = new Date();
+
+    renderExpenses();
+    alert('✅ Expense नोंदवला!');
+}
+
+function deleteExpense(id) {
+    if (!confirm('⚠️ हा खर्च delete करायचा?')) return;
+    saveExpenses(getExpenses().filter(function(e){ return e.id !== id; }));
+    renderExpenses();
+}
+
+function renderExpenses() {
+    var filterVal = (document.getElementById('expMonthFilter') || {}).value || 'all';
+    var allExps = getExpenses();
+    var now = new Date();
+    var cm = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    var lmDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    var lm = lmDate.getFullYear() + '-' + String(lmDate.getMonth()+1).padStart(2,'0');
+
+    var filtered = allExps;
+    if (filterVal === 'thismonth') filtered = allExps.filter(function(e){ return e.date.startsWith(cm); });
+    else if (filterVal === 'lastmonth') filtered = allExps.filter(function(e){ return e.date.startsWith(lm); });
+
+    // Stats
+    var totalAmt = filtered.reduce(function(s,e){ return s+e.amount; }, 0);
+    var monthAmt = allExps.filter(function(e){ return e.date.startsWith(cm); }).reduce(function(s,e){ return s+e.amount;},0);
+    var totalCollectedNum = students.reduce(function(s,st){ return s+st.paidFees; }, 0);
+    var netProfit = totalCollectedNum - allExps.reduce(function(s,e){ return s+e.amount;},0);
+
+    var setTxt = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+    setTxt('expTotalAmt', '₹' + totalAmt.toLocaleString('en-IN'));
+    setTxt('expMonthAmt', '₹' + monthAmt.toLocaleString('en-IN'));
+    setTxt('expNetProfit', '₹' + netProfit.toLocaleString('en-IN'));
+
+    var cont = document.getElementById('expenseListContainer');
+    if (!cont) return;
+    if (filtered.length === 0) {
+        cont.innerHTML = '<div class="empty-state"><div style="font-size:2.5em;">💸</div><p>कोणताही खर्च नाही.</p></div>';
+        return;
+    }
+
+    var catEmoji = { Rent:'🏠', Electricity:'💡', Internet:'🌐', Salary:'👤', Stationery:'📎', Equipment:'💻', Maintenance:'🔧', Other:'📦' };
+    cont.innerHTML = filtered.map(function(e) {
+        var d = e.date ? new Date(e.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+        var emoji = catEmoji[e.category] || '📦';
+        return '<div class="expense-card">' +
+            '<div style="font-size:1.6em; flex-shrink:0;">' + emoji + '</div>' +
+            '<div style="flex:1; min-width:0;">' +
+            '<div style="font-weight:700; color:var(--text-dark); font-size:0.93em;">' + e.desc + '</div>' +
+            '<div style="font-size:0.79em; color:var(--text-mid); margin-top:3px;">' + e.category + '  •  ' + d + '  •  ' + e.mode + '</div>' +
+            (e.notes ? '<div style="font-size:0.78em; color:var(--text-light); font-style:italic; margin-top:2px;">💬 ' + e.notes + '</div>' : '') +
+            '</div>' +
+            '<div style="text-align:right; flex-shrink:0;">' +
+            '<div style="font-size:1.05em; font-weight:700; color:var(--danger);">₹' + e.amount.toLocaleString('en-IN') + '</div>' +
+            '<button onclick="deleteExpense(' + e.id + ')" style="margin-top:5px; padding:3px 8px; background:#fce8e8; color:#5c1a1a; border:1px solid #e8aaaa; border-radius:5px; font-size:0.73em; font-weight:700; cursor:pointer;">🗑 Delete</button>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+}
+
+function exportExpensePDF() {
+    var exps = getExpenses();
+    if (exps.length === 0) { alert('⚠️ कोणताही खर्च नाही!'); return; }
+    var { jsPDF } = window.jspdf;
+    var doc = new jsPDF({ unit:'mm', format:'a4' });
+    var W = 210, lx = 12, rx = 198;
+    var ci = window.currentCenterInfo || { centerName:'ICS COMPUTERS', centerAddress:'Yeola, Nashik', centerMobile:'9822053668' };
+
+    doc.setFillColor(26,82,118); doc.rect(0,0,W,18,'F');
+    doc.setFillColor(243,156,18); doc.rect(0,16,W,2.5,'F');
+    doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.setFontSize(13);
+    doc.text(ci.centerName.toUpperCase(), W/2, 11, {align:'center'});
+
+    var y = 27;
+    doc.setFillColor(200,115,42); doc.roundedRect(lx,y-5,W-24,11,2,2,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont(undefined,'bold');
+    doc.text('CENTER EXPENSES REPORT', W/2, y+2, {align:'center'});
+    y += 13;
+
+    doc.setTextColor(60,60,60); doc.setFontSize(8); doc.setFont(undefined,'normal');
+    doc.text('Generated: ' + new Date().toLocaleDateString('en-IN'), rx, y, {align:'right'});
+    y += 7;
+
+    var total = exps.reduce(function(s,e){ return s+e.amount; },0);
+    doc.setFillColor(26,82,118); doc.roundedRect(lx,y,W-24,14,2,2,'F');
+    doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.setFontSize(9);
+    doc.text('Total Expenses: Rs.' + total.toLocaleString('en-IN'), W/2, y+9, {align:'center'});
+    y += 20;
+
+    var cols = ['#','Date','Description','Category','Amount','Mode'];
+    var ws   = [8,22,55,30,25,25];
+    var tableW = ws.reduce(function(a,b){return a+b;},0);
+    var tx = (W-tableW)/2, rh = 7;
+
+    doc.setFillColor(26,82,118); doc.rect(tx,y,tableW,rh,'F');
+    doc.setTextColor(255,255,255); doc.setFont(undefined,'bold'); doc.setFontSize(7);
+    var cx=tx; cols.forEach(function(c,i){ doc.text(c,cx+ws[i]/2,y+4.8,{align:'center'}); cx+=ws[i]; });
+    y+=rh;
+
+    exps.forEach(function(e,idx) {
+        if (y+rh > 280) { doc.addPage(); y=15; }
+        doc.setFillColor(idx%2===0?245:255,idx%2===0?245:255,idx%2===0?252:255);
+        doc.rect(tx,y,tableW,rh,'F');
+        doc.setTextColor(50,50,50); doc.setFont(undefined,'normal'); doc.setFontSize(6.8);
+        var d = e.date ? new Date(e.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+        var row=[String(idx+1),d,e.desc.substring(0,28),e.category,'Rs.'+e.amount.toLocaleString('en-IN'),e.mode];
+        cx=tx; row.forEach(function(cell,i){ doc.text(cell,cx+ws[i]/2,y+4.8,{align:'center'}); cx+=ws[i]; });
+        doc.setDrawColor(220,220,230); doc.setLineWidth(0.2);
+        doc.line(tx,y+rh,tx+tableW,y+rh);
+        y+=rh;
+    });
+
+    doc.setFillColor(26,82,118); doc.rect(0,287,W,10,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont(undefined,'normal');
+    doc.text(ci.centerName+' | '+ci.centerAddress+' | Mb. '+ci.centerMobile, W/2, 293, {align:'center'});
+
+    doc.save(ci.centerName.replace(/\s+/g,'_')+'_Expenses_'+new Date().toISOString().split('T')[0]+'.pdf');
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS TAB
+// ══════════════════════════════════════════════
+function loadSettingsTab() {
+    var ci = window.currentCenterInfo || {};
+    var el = function(id){ return document.getElementById(id); };
+    if (el('settCenterName')) el('settCenterName').value = ci.centerName || '';
+    if (el('settCenterAddress')) el('settCenterAddress').value = ci.centerAddress || '';
+    if (el('settCenterMobile')) el('settCenterMobile').value = ci.centerMobile || '';
+
+    // Show logged-in username in password change info box
+    if (currentLoggedInUser && el('pwdChangeUserInfo')) {
+        var role = currentLoggedInUser.role === 'admin' ? '🛡️ Admin' : '👤 User';
+        el('pwdChangeUserInfo').innerHTML = '👤 Logged in as: <strong>' + currentLoggedInUser.username + '</strong> (' + role + ') — तुम्ही फक्त स्वतःचा password change करू शकता';
+    }
+
+    // Clear password fields
+    ['settCurrentPwd','settNewPwd','settConfirmPwd'].forEach(function(id){
+        if (el(id)) el(id).value = '';
+    });
+    if (el('pwdStrengthMsg')) el('pwdStrengthMsg').style.display = 'none';
+
+    var expDate = getExpiryDate ? getExpiryDate() : '—';
+    var days = getDaysRemaining ? getDaysRemaining() : 0;
+    var formatted = expDate !== '—' ? new Date(expDate).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+    if (el('settExpiryDisplay')) el('settExpiryDisplay').textContent = formatted;
+    if (el('settDaysDisplay')) {
+        el('settDaysDisplay').textContent = days <= 0 ? 'EXPIRED' : days + ' days';
+        el('settDaysDisplay').className = 'value ' + (days <= 0 ? 'danger' : days <= 15 ? 'warn' : 'ok');
+    }
+
+    // Hide admin-only sections for regular users
+    var isAdmin = currentLoggedInUser && currentLoggedInUser.role === 'admin';
+    var adminSections = document.querySelectorAll('.admin-only-setting');
+    adminSections.forEach(function(s){ s.style.display = isAdmin ? '' : 'none'; });
+}
+
+function toggleSettPwd(fieldId) {
+    var inp = document.getElementById(fieldId);
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// Live password strength check
+document.addEventListener('DOMContentLoaded', function() {
+    var newPwdEl = document.getElementById('settNewPwd');
+    if (newPwdEl) {
+        newPwdEl.addEventListener('input', function() {
+            var pwd = this.value;
+            var msgEl = document.getElementById('pwdStrengthMsg');
+            if (!msgEl) return;
+            if (!pwd) { msgEl.style.display = 'none'; return; }
+            var strength = 0;
+            if (pwd.length >= 4) strength++;
+            if (pwd.length >= 8) strength++;
+            if (/[A-Z]/.test(pwd)) strength++;
+            if (/[0-9]/.test(pwd)) strength++;
+            if (/[^A-Za-z0-9]/.test(pwd)) strength++;
+            var labels = ['', '⚠️ Weak', '⚠️ Weak', '👍 Medium', '💪 Strong', '🔒 Very Strong'];
+            var colors = ['', '#fce8e8:#e8aaaa:#5c1a1a', '#fce8e8:#e8aaaa:#5c1a1a', '#fff8e6:#f5cc84:#7a4f10', '#e8f5e9:#a8d5b5:#1b5e20', '#e0f5e9:#7bd5a5:#1b4332'];
+            var c = colors[strength].split(':');
+            msgEl.style.display = 'block';
+            msgEl.style.background = c[0]; msgEl.style.border = '1px solid ' + c[1]; msgEl.style.color = c[2];
+            msgEl.textContent = labels[strength] + ' Password' + (pwd.length < 4 ? ' (किमान 4 characters)' : '');
+        });
+    }
+});
+
+function saveCenterInfo() {
+    var name    = document.getElementById('settCenterName').value.trim();
+    var address = document.getElementById('settCenterAddress').value.trim();
+    var mobile  = document.getElementById('settCenterMobile').value.trim();
+    if (!name) { alert('⚠️ Center name टाका!'); return; }
+    window.currentCenterInfo = { centerName: name, centerAddress: address, centerMobile: mobile };
+    // Update header
+    var ht = document.getElementById('headerTitle');
+    if (ht) {
+        var parts = name.split(' ');
+        ht.innerHTML = '🎓 ' + parts[0] + (parts.length > 1 ? ' <span>' + parts.slice(1).join(' ') + '</span>' : '');
+    }
+    var hs = document.getElementById('headerSubtitle');
+    if (hs) {
+        var sub = 'Fees Management System';
+        if (address) sub += ' — ' + address;
+        if (mobile) sub += ' | Mb. ' + mobile;
+        hs.textContent = sub;
+    }
+    // Persist for current user
+    if (currentLoggedInUser) {
+        currentLoggedInUser.centerName = name;
+        currentLoggedInUser.centerAddress = address;
+        currentLoggedInUser.centerMobile = mobile;
+        var users = getUsers();
+        var idx = users.findIndex(function(u){ return u.username === currentLoggedInUser.username; });
+        if (idx !== -1) { users[idx] = currentLoggedInUser; saveUsers(users); }
+    }
+    alert('✅ Center information saved!');
+}
+
+function changePasswordFromSettings() {
+    var curPwd  = document.getElementById('settCurrentPwd').value;
+    var newPwd  = document.getElementById('settNewPwd').value;
+    var confPwd = document.getElementById('settConfirmPwd').value;
+
+    if (!curPwd) { alert('⚠️ Current password टाका!'); return; }
+    if (!currentLoggedInUser) { alert('⚠️ Please login again!'); return; }
+
+    // Verify current password matches the LOGGED-IN user's password
+    if (curPwd !== currentLoggedInUser.password) {
+        alert('❌ Incorrect current password!');
+        document.getElementById('settCurrentPwd').value = '';
+        return;
+    }
+    if (!newPwd || newPwd.length < 4) { alert('⚠️ New password किमान 4 characters असावे!'); return; }
+    if (newPwd !== confPwd) { alert('❌ Passwords जुळत नाहीत!'); return; }
+
+    // Update password for the currently logged-in user
+    var users = getUsers();
+    var userIdx = users.findIndex(function(u){ return u.username === currentLoggedInUser.username; });
+    if (userIdx === -1) { alert('❌ User सापडला नाही!'); return; }
+
+    users[userIdx].password = newPwd;
+    saveUsers(users);
+
+    // Update in-memory session too
+    currentLoggedInUser.password = newPwd;
+
+    // Legacy compat for admin
+    if (currentLoggedInUser.role === 'admin') {
+        localStorage.setItem('icsLoginPwd', newPwd);
+    }
+
+    document.getElementById('settCurrentPwd').value = '';
+    document.getElementById('settNewPwd').value = '';
+    document.getElementById('settConfirmPwd').value = '';
+    alert('✅ Password successfully changed!\n\n👤 User: ' + currentLoggedInUser.username + '\n🔑 नवीन password active झाला!');
+}
+
 // ── Course Manager ──
 var DEFAULT_COURSES = ['MS-CIT','Tally','Typing','Graphics','Coding','Advanced Excel','DTP'];
 
@@ -3556,6 +4610,7 @@ function saveCourses(list) {
 
 function populateCourseDropdowns() {
     var courses = getCourses();
+    populateEnquiryCourseDrop();
     var selectors = ['#course', '#reportCourseFilter'];
     selectors.forEach(function(sel) {
         var el = document.querySelector(sel);
