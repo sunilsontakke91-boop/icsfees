@@ -1039,7 +1039,10 @@
             <p id="headerSubtitle">Fees Management System — Yeola, Nashik</p>
             <div class="header-actions">
                 <span class="header-user-badge" id="headerUserBadge">👤 Admin</span>
-                <button class="logout-btn" onclick="logoutNow()">🚪 Logout</button>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:3px;">
+                    <button class="logout-btn" onclick="logoutNow()">🚪 Logout</button>
+                    <span id="userExpiryBadge" style="display:none; font-size:0.7em; color:rgba(255,255,255,0.75); letter-spacing:0.3px;"></span>
+                </div>
             </div>
         </div>
 
@@ -1921,6 +1924,28 @@
                             placeholder="e.g. 9876543210" maxlength="10" />
                     </div>
                 </div>
+                <div style="border-top:1px dashed var(--border); margin:10px 0 12px; padding-top:10px;">
+                    <div style="font-size:0.8em; font-weight:700; color:#8b2a2a; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">⏳ User Expiry</div>
+                    <div class="form-row" style="margin-bottom:0;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.8em;">Expiry Date <span class="required">*</span></label>
+                            <input type="date" id="umExpiryDate"
+                                style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;" />
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size:0.8em;">Quick Set</label>
+                            <select id="umExpiryQuick" onchange="setUserExpiryQuick()"
+                                style="width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:7px; font-size:0.93em; background:#fdfaf6; font-family:'DM Sans',sans-serif;">
+                                <option value="">-- निवडा --</option>
+                                <option value="1m">1 महिना</option>
+                                <option value="3m">3 महिने</option>
+                                <option value="6m">6 महिने</option>
+                                <option value="1y">1 वर्ष</option>
+                                <option value="2y">2 वर्षे</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <button class="btn btn-primary" onclick="addNewUser()" style="width:100%; padding:9px; font-size:0.9em; margin-top:2px;">
                     ✅ Create User
                 </button>
@@ -2245,6 +2270,18 @@
             const matchedUser = users.find(u => u.username === username && u.password === pwd);
 
             if (matchedUser) {
+                // Per-user expiry check
+                if (matchedUser.role !== 'admin' && matchedUser.expiry) {
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    const expDate = new Date(matchedUser.expiry); expDate.setHours(0,0,0,0);
+                    if (expDate < today) {
+                        const fmtExp = expDate.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+                        errEl.style.display = 'block';
+                        errEl.innerHTML = '🔒 तुमचा access <strong>' + fmtExp + '</strong> ला expire झाला आहे.<br>ICS admin शी संपर्क करा.';
+                        inp.value = '';
+                        return;
+                    }
+                }
                 loginAttempts = 0;
                 currentLoggedInUser = matchedUser;
                 document.getElementById('loginScreen').style.display = 'none';
@@ -2253,6 +2290,8 @@
                 errEl.style.display = 'none';
                 // Apply center branding
                 applyUserBranding(matchedUser);
+                // Session snapshot — auto-backup साठी baseline
+                saveSessionSnapshot();
                 // Show/hide admin settings button based on role
                 const adminBtn = document.querySelector('.admin-panel-btn');
                 if (adminBtn) adminBtn.style.display = matchedUser.role === 'admin' ? 'flex' : 'none';
@@ -2290,14 +2329,39 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        //  AUTO-BACKUP — Logout / Browser Close वेळी
+        //  AUTO-BACKUP — फक्त नवीन data enter केल्यावरच
         // ══════════════════════════════════════════════════════════
+
+        // Data चा simple hash/snapshot — compare करण्यासाठी
+        function getDataSnapshot() {
+            const s = localStorage.getItem('icsStudents')  || '[]';
+            const e = localStorage.getItem('icsEnquiries') || '[]';
+            const x = localStorage.getItem('icsExpenses')  || '[]';
+            // फक्त lengths + last item timestamp वापरतो — fast & reliable
+            const st = JSON.parse(s), en = JSON.parse(e), ex = JSON.parse(x);
+            return st.length + '|' + en.length + '|' + ex.length + '|' +
+                   (st[0] ? st[0].id||'' : '') + '|' +
+                   (en[0] ? en[0].id||'' : '') + '|' +
+                   (ex[0] ? ex[0].id||'' : '');
+        }
+
+        // Login वेळी snapshot save होतो
+        let _sessionStartSnapshot = null;
+
+        function saveSessionSnapshot() {
+            try { _sessionStartSnapshot = getDataSnapshot(); } catch(e) {}
+        }
+
         function autoBackupSilent(reason) {
             try {
-                const enquiries = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
-                const expenses  = JSON.parse(localStorage.getItem('icsExpenses')  || '[]');
-                const batches   = JSON.parse(localStorage.getItem('icsBatches')   || '{}');
-                const allStudents = JSON.parse(localStorage.getItem('icsStudents') || '[]');
+                // नवीन data नसेल तर backup नाही
+                const currentSnapshot = getDataSnapshot();
+                if (_sessionStartSnapshot && currentSnapshot === _sessionStartSnapshot) return;
+
+                const enquiries   = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+                const expenses    = JSON.parse(localStorage.getItem('icsExpenses')  || '[]');
+                const batches     = JSON.parse(localStorage.getItem('icsBatches')   || '{}');
+                const allStudents = JSON.parse(localStorage.getItem('icsStudents')  || '[]');
                 const total = allStudents.length + enquiries.length + expenses.length;
                 if (total === 0) return;
 
@@ -2480,6 +2544,20 @@
         }
 
         // ── User Management Functions ──
+        // Quick expiry date setter for new user form
+        function setUserExpiryQuick() {
+            const sel = document.getElementById('umExpiryQuick').value;
+            if (!sel) return;
+            const d = new Date();
+            if (sel === '1m') d.setMonth(d.getMonth() + 1);
+            else if (sel === '3m') d.setMonth(d.getMonth() + 3);
+            else if (sel === '6m') d.setMonth(d.getMonth() + 6);
+            else if (sel === '1y') d.setFullYear(d.getFullYear() + 1);
+            else if (sel === '2y') d.setFullYear(d.getFullYear() + 2);
+            document.getElementById('umExpiryDate').value = d.toISOString().split('T')[0];
+            document.getElementById('umExpiryQuick').value = '';
+        }
+
         function addNewUser() {
             const superPwd = document.getElementById('umSuperPwd').value;
             const username = document.getElementById('umNewUsername').value.trim().toLowerCase();
@@ -2487,6 +2565,7 @@
             const centerName = document.getElementById('umCenterName').value.trim();
             const centerAddress = document.getElementById('umCenterAddress').value.trim();
             const centerMobile = document.getElementById('umCenterMobile').value.trim();
+            const expiry = document.getElementById('umExpiryDate').value;
 
             if (!superPwd) { alert('⚠️ Enter super admin password!'); return; }
             if (superPwd !== SUPER_PASSWORD) { alert('❌ Incorrect super admin password!'); document.getElementById('umSuperPwd').value=''; return; }
@@ -2494,6 +2573,9 @@
             if (!/^[a-z0-9_]+$/.test(username)) { alert('⚠️ Username मध्ये फक्त letters, numbers, underscore वापरा.'); return; }
             if (!password || password.length < 4) { alert('⚠️ Password किमान 4 अक्षरे असावे!'); return; }
             if (!centerName) { alert('⚠️ Center Name टाका!'); return; }
+            if (!expiry) { alert('⚠️ User ची Expiry Date टाका!'); return; }
+            const today = new Date().toISOString().split('T')[0];
+            if (expiry <= today) { alert('⚠️ Expiry date भविष्यातील असावी!'); return; }
 
             const users = getUsers();
             if (users.find(u => u.username === username)) {
@@ -2501,22 +2583,60 @@
                 return;
             }
 
+            const expDate = new Date(expiry);
+            const days = Math.ceil((expDate - new Date()) / 86400000);
+            const fmtExp = expDate.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+
             users.push({
                 username: username,
                 password: password,
                 role: 'user',
                 centerName: centerName,
                 centerAddress: centerAddress || '',
-                centerMobile: centerMobile || ''
+                centerMobile: centerMobile || '',
+                expiry: expiry
             });
             saveUsers(users);
-            alert('✅ User "' + username + '" तयार झाला!\n\nCenter: ' + centerName + '\nते आता login करू शकतात.');
+            alert('✅ User "' + username + '" तयार झाला!\n\n🏫 Center: ' + centerName + '\n📅 Expiry: ' + fmtExp + ' (' + days + ' days)\n\nते आता login करू शकतात.');
             document.getElementById('umSuperPwd').value = '';
             document.getElementById('umNewUsername').value = '';
             document.getElementById('umNewPassword').value = '';
             document.getElementById('umCenterName').value = '';
             document.getElementById('umCenterAddress').value = '';
             document.getElementById('umCenterMobile').value = '';
+            document.getElementById('umExpiryDate').value = '';
+            renderUserList();
+        }
+
+        // Extend existing user expiry
+        function extendUserExpiry(username) {
+            const users = getUsers();
+            const user = users.find(u => u.username === username);
+            if (!user) return;
+
+            const curExpiry = user.expiry || '';
+            const curFmt = curExpiry
+                ? new Date(curExpiry).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'})
+                : 'Set नाही';
+
+            const newDate = prompt(
+                '📅 User: ' + username + '\n' +
+                '🏫 Center: ' + (user.centerName || '—') + '\n' +
+                '⏳ सध्याची Expiry: ' + curFmt + '\n\n' +
+                'नवीन Expiry Date टाका (YYYY-MM-DD format):\n' +
+                '(उदा: ' + new Date(Date.now() + 365*86400000).toISOString().split('T')[0] + ')',
+                curExpiry || ''
+            );
+            if (!newDate) return;
+            const today = new Date().toISOString().split('T')[0];
+            if (newDate <= today) { alert('⚠️ Future date टाका!'); return; }
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) { alert('⚠️ YYYY-MM-DD format वापरा!'); return; }
+
+            user.expiry = newDate;
+            saveUsers(users);
+            const fmtNew = new Date(newDate).toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+            const days = Math.ceil((new Date(newDate) - new Date()) / 86400000);
+            alert('✅ Expiry update झाली!\n\n👤 User: ' + username + '\n📅 नवीन Expiry: ' + fmtNew + '\n⏳ ' + days + ' days remaining');
             renderUserList();
         }
 
@@ -2548,6 +2668,30 @@
             // Header user badge
             const badge = document.getElementById('headerUserBadge');
             if (badge) badge.textContent = '👤 ' + user.username + (isAdmin ? ' (Admin)' : '');
+
+            // Expiry badge — Logout button खाली
+            const expBadge = document.getElementById('userExpiryBadge');
+            if (expBadge) {
+                if (!isAdmin && user.expiry) {
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    const expDate = new Date(user.expiry); expDate.setHours(0,0,0,0);
+                    const days = Math.ceil((expDate - today) / 86400000);
+                    const fmtExp = expDate.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+                    if (days <= 0) {
+                        expBadge.textContent = '❌ Expired: ' + fmtExp;
+                        expBadge.style.color = '#ffaaaa';
+                    } else if (days <= 15) {
+                        expBadge.textContent = '⚠️ Expires: ' + fmtExp + ' (' + days + 'd)';
+                        expBadge.style.color = '#ffd080';
+                    } else {
+                        expBadge.textContent = '📅 Valid till: ' + fmtExp;
+                        expBadge.style.color = 'rgba(255,255,255,0.65)';
+                    }
+                    expBadge.style.display = 'block';
+                } else {
+                    expBadge.style.display = 'none';
+                }
+            }
 
             // Store branding for receipt use
             window.currentCenterInfo = { centerName, centerAddress, centerMobile };
@@ -2691,23 +2835,43 @@
                 container.innerHTML = '<div style="padding:16px; text-align:center; color:#7a8a92; font-size:0.88em;">No users found.</div>';
                 return;
             }
-            container.innerHTML = users.map((u, i) => `
+            const today = new Date(); today.setHours(0,0,0,0);
+            container.innerHTML = users.map((u, i) => {
+                const isAdmin = u.role === 'admin';
+                // Expiry info
+                let expiryHtml = '';
+                if (!isAdmin) {
+                    if (u.expiry) {
+                        const expDate = new Date(u.expiry); expDate.setHours(0,0,0,0);
+                        const days = Math.ceil((expDate - today) / 86400000);
+                        const fmtExp = expDate.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+                        const expColor = days <= 0 ? '#5c1a1a' : days <= 15 ? '#7a4f10' : '#1b5e20';
+                        const expBg    = days <= 0 ? '#fce8e8' : days <= 15 ? '#fff8e6' : '#e8f5e9';
+                        const expLabel = days <= 0 ? '❌ Expired' : days <= 15 ? '⚠️ ' + days + ' days left' : '✅ ' + days + ' days left';
+                        expiryHtml = `<span style="font-size:0.72em; background:${expBg}; color:${expColor}; padding:2px 7px; border-radius:8px; font-weight:700; margin-left:4px;">${expLabel} (${fmtExp})</span>`;
+                    } else {
+                        expiryHtml = `<span style="font-size:0.72em; background:#fff8e6; color:#7a4f10; padding:2px 7px; border-radius:8px; font-weight:700; margin-left:4px;">⚠️ No Expiry Set</span>`;
+                    }
+                }
+                return `
                 <div style="padding:10px 14px; border-bottom:${i < users.length-1 ? '1px solid #e8e0d4' : 'none'};">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
                         <div style="flex:1; min-width:0;">
-                            <div style="font-weight:700; font-size:0.9em; color:#1c2b30; display:flex; align-items:center; gap:6px;">
-                                ${u.role === 'admin' ? '🛡️' : '👤'} ${u.username}
-                                <span style="background:${u.role==='admin'?'#dbeafe':'#e8f5e9'}; color:${u.role==='admin'?'#1e40af':'#1b5e20'}; font-size:0.75em; padding:2px 7px; border-radius:10px; font-weight:600; text-transform:uppercase;">${u.role}</span>
+                            <div style="font-weight:700; font-size:0.9em; color:#1c2b30; display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                                ${isAdmin ? '🛡️' : '👤'} ${u.username}
+                                <span style="background:${isAdmin?'#dbeafe':'#e8f5e9'}; color:${isAdmin?'#1e40af':'#1b5e20'}; font-size:0.75em; padding:2px 7px; border-radius:10px; font-weight:600; text-transform:uppercase;">${u.role}</span>
+                                ${expiryHtml}
                             </div>
                             ${u.centerName ? `<div style="font-size:0.78em; color:#4a5568; margin-top:3px;">🏫 ${u.centerName}${u.centerAddress ? ' · ' + u.centerAddress : ''}${u.centerMobile ? ' · ' + u.centerMobile : ''}</div>` : ''}
                         </div>
-                        <div style="display:flex; gap:5px; flex-shrink:0;">
+                        <div style="display:flex; gap:5px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end;">
+                            ${!isAdmin ? `<button onclick="extendUserExpiry('${u.username}')" style="background:#e8f4fb; border:1px solid #90cde0; color:#1a4a5e; padding:4px 9px; border-radius:5px; font-size:0.77em; font-weight:600; cursor:pointer;">📅 Expiry</button>` : ''}
                             <button onclick="resetUserPassword('${u.username}')" style="background:#fef3c7; border:1px solid #f5cc84; color:#7a4f10; padding:4px 9px; border-radius:5px; font-size:0.77em; font-weight:600; cursor:pointer;">🔑 Pwd</button>
                             <button onclick="deleteUser('${u.username}')" style="background:#fce8e8; border:1px solid #e8aaaa; color:#5c1a1a; padding:4px 9px; border-radius:5px; font-size:0.77em; font-weight:600; cursor:pointer;">🗑</button>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // ── Old ADMIN_PASSWORD replaced — now uses checkPassword() via login ──
