@@ -939,6 +939,62 @@
         .enq-cold { background: #e0f0ff; color: #1a3a7a; border: 1px solid #a8c8f5; }
         .enq-converted { background: #e0f5e9; color: #1a5e30; border: 1px solid #a8d5b5; }
 
+        /* ══════════════════════════════════════
+           CENTER / BATCH MANAGEMENT
+        ══════════════════════════════════════ */
+        .batch-student-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 13px;
+            border-bottom: 1px solid #ede6db;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .batch-student-item:last-child { border-bottom: none; }
+        .batch-student-item:hover { background: rgba(30,77,94,0.06); }
+        .batch-student-item.selected { background: rgba(30,77,94,0.1); }
+        .batch-student-item input[type="checkbox"] {
+            width: 16px; height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .batch-slot-card {
+            background: rgba(30,77,94,0.05);
+            border: 1px solid rgba(30,77,94,0.12);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .batch-slot-header {
+            background: linear-gradient(135deg, #1a3a4a, #1e4d5e);
+            color: white;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            font-weight: 700;
+        }
+        .batch-slot-body {
+            padding: 10px 14px;
+        }
+        .batch-student-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(30,77,94,0.08);
+            border: 1px solid rgba(30,77,94,0.15);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 3px;
+        }
+
         /* Header right area for logout */
         .header-actions {
             position: absolute;
@@ -998,11 +1054,11 @@
             <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">
                 📊 Dashboard
             </button>
-            <button class="tab-btn" onclick="switchTab('receipt')" id="tab-receipt">
-                🧾 Payment Receipt
-            </button>
             <button class="tab-btn" onclick="switchTab('enquiry')" id="tab-enquiry">
                 📋 Student Enquiry
+            </button>
+            <button class="tab-btn" onclick="switchTab('center')" id="tab-center">
+                🏫 Center
             </button>
             <button class="tab-btn" onclick="switchTab('expenses')" id="tab-expenses">
                 💸 Center Expenses
@@ -1179,46 +1235,7 @@
         </div><!-- end tab-dashboard -->
 
         <!-- ═══════════════════════════════════════════
-             TAB 2: PAYMENT RECEIPT
-        ═══════════════════════════════════════════ -->
-        <div class="tab-content" id="tabContent-receipt">
-        <div class="panel">
-            <div class="panel-header">
-                <h2>🧾 Payment Receipt</h2>
-            </div>
-            <div class="info-box">📌 Student शोधा आणि त्याची Receipt बघा / Download करा</div>
-
-            <div class="search-box" style="margin-bottom:18px;">
-                <input type="text" id="receiptSearchInput" placeholder="🔍 Name / Mobile / Receipt No. टाका...">
-                <button class="btn btn-primary" onclick="searchForReceipt()">🔍 Search</button>
-                <button class="btn btn-info" onclick="showAllForReceipt()">Show All</button>
-            </div>
-
-            <div class="table-wrapper" style="padding:0; background:transparent; box-shadow:none; border:none;">
-            <table class="students-table">
-                <thead>
-                    <tr>
-                        <th>Receipt No.</th>
-                        <th>Student Name</th>
-                        <th>Mobile</th>
-                        <th>Course</th>
-                        <th>Total Fees</th>
-                        <th>Paid Fees</th>
-                        <th>Balance</th>
-                        <th>Status</th>
-                        <th>Receipt</th>
-                    </tr>
-                </thead>
-                <tbody id="receiptTableBody">
-                    <tr><td colspan="9" class="empty-state"><div style="font-size:2.5em;">🧾</div><p>Search करून student निवडा</p></td></tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-        </div><!-- end tab-receipt -->
-
-        <!-- ═══════════════════════════════════════════
-             TAB 3: STUDENT ENQUIRY
+             TAB 2: STUDENT ENQUIRY
         ═══════════════════════════════════════════ -->
         <div class="tab-content" id="tabContent-enquiry">
         <div class="main-grid">
@@ -1490,6 +1507,121 @@
         </div>
         </div><!-- end tab-settings -->
 
+        <!-- ═══════════════════════════════════════════
+             TAB 6: CENTER — BATCH MANAGEMENT
+        ═══════════════════════════════════════════ -->
+        <div class="tab-content" id="tabContent-center">
+
+          <!-- Stats -->
+          <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:18px;">
+            <div class="stat-card" style="cursor:default;">
+              <div class="stat-label">Active Batches</div>
+              <div class="stat-value" id="batchStatTotal">0</div>
+            </div>
+            <div class="stat-card green" style="cursor:default;">
+              <div class="stat-label">Total Students</div>
+              <div class="stat-value" id="batchStatStudents">0</div>
+            </div>
+            <div class="stat-card yellow" style="cursor:default;">
+              <div class="stat-label">Assigned</div>
+              <div class="stat-value" id="batchStatAssigned">0</div>
+            </div>
+            <div class="stat-card red" style="cursor:default;">
+              <div class="stat-label">Unassigned</div>
+              <div class="stat-value" id="batchStatUnassigned">0</div>
+            </div>
+          </div>
+
+          <div class="main-grid">
+
+            <!-- LEFT: Batch Dropdown + Unassigned Students -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2>🕐 Batch Assign करा</h2>
+              </div>
+              <div class="info-box">📌 Batch निवडा → खालील unassigned students select करून add करा</div>
+
+              <!-- Batch Dropdown -->
+              <div class="form-group">
+                <label>Batch / Time Slot निवडा <span class="required">*</span></label>
+                <select id="batchSelect" onchange="onBatchSelect()"
+                  style="width:100%; padding:12px 14px; border:2px solid var(--border); border-radius:8px; font-size:1em; background:#fdfaf6; color:var(--text-dark); font-family:'DM Sans',sans-serif;">
+                  <option value="">-- Batch निवडा --</option>
+                  <option value="7-8 AM">🌅 7:00 AM – 8:00 AM</option>
+                  <option value="8-9 AM">🌄 8:00 AM – 9:00 AM</option>
+                  <option value="9-10 AM">☀️ 9:00 AM – 10:00 AM</option>
+                  <option value="10-11 AM">🌤️ 10:00 AM – 11:00 AM</option>
+                  <option value="11-12 PM">🌞 11:00 AM – 12:00 PM</option>
+                  <option value="12-1 PM">🕛 12:00 PM – 1:00 PM</option>
+                  <option value="1-2 PM">🌻 1:00 PM – 2:00 PM</option>
+                  <option value="2-3 PM">☁️ 2:00 PM – 3:00 PM</option>
+                  <option value="3-4 PM">🌥️ 3:00 PM – 4:00 PM</option>
+                  <option value="4-5 PM">🌇 4:00 PM – 5:00 PM</option>
+                  <option value="5-6 PM">🌆 5:00 PM – 6:00 PM</option>
+                  <option value="6-7 PM">🌃 6:00 PM – 7:00 PM</option>
+                  <option value="7-8 PM">🌙 7:00 PM – 8:00 PM</option>
+                </select>
+              </div>
+
+              <!-- Info box -->
+              <div id="batchInfoBox" style="display:none; background:rgba(30,77,94,0.07); border-left:4px solid var(--primary); padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:0.88em;"></div>
+
+              <!-- Unassigned student list section -->
+              <div id="batchStudentSelectWrap" style="display:none;">
+                <div class="form-group">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label style="margin-bottom:0;">Unassigned Students <span id="unassignedCountBadge" style="background:var(--accent);color:white;padding:1px 8px;border-radius:10px;font-size:0.75em;font-weight:700;margin-left:6px;">0</span></label>
+                    <span>
+                      <button onclick="batchSelectAll()" style="background:none;border:none;cursor:pointer;color:var(--primary);font-weight:700;font-size:0.82em;">✅ All</button>
+                      &nbsp;|&nbsp;
+                      <button onclick="batchClearAll()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-weight:700;font-size:0.82em;">❌ None</button>
+                    </span>
+                  </div>
+                  <!-- Search -->
+                  <input type="text" id="batchStudentSearch" placeholder="🔍 नाव / Course / Mobile..."
+                    oninput="filterBatchStudentList()"
+                    style="width:100%; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:0.88em; background:#fdfaf6; color:var(--text-dark); font-family:'DM Sans',sans-serif; margin-bottom:6px;">
+                  <!-- List -->
+                  <div id="batchStudentList"
+                    style="border:2px solid var(--border); border-radius:8px; max-height:280px; overflow-y:auto; background:#fdfaf6;">
+                  </div>
+                  <div style="margin-top:5px; font-size:0.78em; color:var(--text-light);">
+                    <span id="batchSelectedCount" style="font-weight:600; color:var(--primary);">0 selected</span>
+                    &nbsp;— checkbox tick करा आणि खालील button दाबा
+                  </div>
+                </div>
+                <button class="btn btn-primary" onclick="assignSelectedToBatch()" style="width:100%;">
+                  ➕ Selected Students या Batch मध्ये Add करा
+                </button>
+              </div>
+
+              <!-- Prompt when no batch selected -->
+              <div id="batchSelectPrompt" style="text-align:center; padding:30px 10px; color:var(--text-light);">
+                <div style="font-size:2.5em; margin-bottom:8px;">🕐</div>
+                <p style="font-size:0.88em;">वरून batch निवडा<br>मग unassigned students दिसतील</p>
+              </div>
+            </div>
+
+            <!-- RIGHT: Assigned Students + Batch Summary -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2>📋 Batch Summary</h2>
+                <button onclick="exportBatchExcel()"
+                  style="padding:6px 13px; background:linear-gradient(135deg,#1b5e20,#2d8a3e); color:white; border:1.5px solid #81c784; border-radius:7px; cursor:pointer; font-size:0.82em; font-weight:700; white-space:nowrap;">
+                  📊 Excel Export
+                </button>
+              </div>
+              <div id="batchSummaryContainer">
+                <div class="empty-state">
+                  <div style="font-size:2.5em;">🏫</div>
+                  <p>कोणत्याही batch मध्ये students नाहीत.<br>डाव्या बाजूने batch निवडून students add करा.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- end tab-center -->
+
         </div><!-- end #appContent -->
 
     </div><!-- end .container -->
@@ -1607,10 +1739,15 @@
 ════════════════════════════════════════ -->
 <div id="loginScreen">
     <div class="login-card">
-        <div class="login-logo" id="loginLogo">🎓 ICS <span>DEVELOPERS</span></div>
+        <!-- ICS Logo -->
+        <div style="margin: 0 auto 10px; width:90px; height:90px;">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnR3JhZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwNjNBMUUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMEE1QzJFIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgoKICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iaGV4R3JhZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0QURFODAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMTZBMzRBIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgoKICAgIDxsaW5lYXJHcmFkaWVudCBpZD0idGV4dEdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I0ZGRkZGRiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6I0RDRkNFNyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGRkZGRkYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CgogICAgPGZpbHRlciBpZD0iZ2xvdyIgeD0iLTIwJSIgeT0iLTIwJSIgd2lkdGg9IjE0MCUiIGhlaWdodD0iMTQwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjQiIHJlc3VsdD0iY29sb3JlZEJsdXIiLz4KICAgICAgPGZlTWVyZ2U+CiAgICAgICAgPGZlTWVyZ2VOb2RlIGluPSJjb2xvcmVkQmx1ciIvPgogICAgICAgIDxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPgogICAgICA8L2ZlTWVyZ2U+CiAgICA8L2ZpbHRlcj4KCiAgICA8Y2xpcFBhdGggaWQ9ImNpcmNsZUNsaXAiPgogICAgICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE3MCIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CgogIDwhLS0gT3V0ZXIgcmluZ3MgLS0+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxOTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRBREU4MCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuMiIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjE4NSIgcj0iMTg1IiBmaWxsPSJub25lIiBzdHJva2U9IiM0QURFODAiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEyIi8+CgogIDwhLS0gTWFpbiBiYWNrZ3JvdW5kIGNpcmNsZSAtLT4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE3NSIgZmlsbD0idXJsKCNiZ0dyYWQpIi8+CgogIDwhLS0gSW5uZXIgcmluZyAtLT4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE2NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNEFERTgwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMjUiLz4KCiAgPCEtLSBTdWJ0bGUgZG90IGdyaWQgLS0+CiAgPGcgY2xpcC1wYXRoPSJ1cmwoI2NpcmNsZUNsaXApIiBvcGFjaXR5PSIwLjA2Ij4KICAgIDxwYXR0ZXJuIGlkPSJkb3RzIiB4PSIwIiB5PSIwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMS4yIiBmaWxsPSIjNEFERTgwIi8+CiAgICA8L3BhdHRlcm4+CiAgICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNkb3RzKSIvPgogIDwvZz4KCiAgPCEtLSBIZXhhZ29uIG91dGxpbmUgLS0+CiAgPHBvbHlnb24KICAgIHBvaW50cz0iMjAwLDk3IDI1MCwxMjYgMjUwLDE4NCAyMDAsMjEzIDE1MCwxODQgMTUwLDEyNiIKICAgIGZpbGw9Im5vbmUiCiAgICBzdHJva2U9InVybCgjaGV4R3JhZCkiCiAgICBzdHJva2Utd2lkdGg9IjMiCiAgICBmaWx0ZXI9InVybCgjZ2xvdykiCiAgICBvcGFjaXR5PSIwLjk1IgogIC8+CgogIDwhLS0gSGV4YWdvbiBpbm5lciBmaWxsIGdsb3cgLS0+CiAgPHBvbHlnb24KICAgIHBvaW50cz0iMjAwLDExMiAyMzcsMTMzIDIzNywxNzUgMjAwLDE5NiAxNjMsMTc1IDE2MywxMzMiCiAgICBmaWxsPSIjNEFERTgwIgogICAgb3BhY2l0eT0iMC4wOCIKICAvPgoKICA8IS0tIENpcmN1aXQgbGluZXMg4oCUIGxlZnQgLS0+CiAgPGxpbmUgeDE9IjE1MCIgeTE9IjE1NSIgeDI9IjExNSIgeTI9IjE1NSIgc3Ryb2tlPSIjNEFERTgwIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC41Ii8+CiAgPGNpcmNsZSBjeD0iMTE1IiBjeT0iMTU1IiByPSIzLjUiIGZpbGw9IiM0QURFODAiIG9wYWNpdHk9IjAuNjUiLz4KICA8bGluZSB4MT0iMTE1IiB5MT0iMTU1IiB4Mj0iMTE1IiB5Mj0iMTI4IiBzdHJva2U9IiM0QURFODAiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIxMTUiIGN5PSIxMjgiIHI9IjIuNSIgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC40Ii8+CgogIDwhLS0gQ2lyY3VpdCBsaW5lcyDigJQgcmlnaHQgLS0+CiAgPGxpbmUgeDE9IjI1MCIgeTE9IjE1NSIgeDI9IjI4NSIgeTI9IjE1NSIgc3Ryb2tlPSIjNEFERTgwIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC41Ii8+CiAgPGNpcmNsZSBjeD0iMjg1IiBjeT0iMTU1IiByPSIzLjUiIGZpbGw9IiM0QURFODAiIG9wYWNpdHk9IjAuNjUiLz4KICA8bGluZSB4MT0iMjg1IiB5MT0iMTU1IiB4Mj0iMjg1IiB5Mj0iMTI4IiBzdHJva2U9IiM0QURFODAiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIyODUiIGN5PSIxMjgiIHI9IjIuNSIgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC40Ii8+CgogIDwhLS0gQ2lyY3VpdCBsaW5lcyDigJQgYm90dG9tIC0tPgogIDxsaW5lIHgxPSIyMDAiIHkxPSIyMTMiIHgyPSIyMDAiIHkyPSIyMzgiIHN0cm9rZT0iIzRBREU4MCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIzOCIgcj0iMyIgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC41NSIvPgoKICA8IS0tIElDUyBsZXR0ZXJzIC0tPgogIDx0ZXh0CiAgICB4PSIyMDAiIHk9IjE3MiIKICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICBmb250LWZhbWlseT0iJ0NvdXJpZXIgTmV3JywgbW9ub3NwYWNlIgogICAgZm9udC1zaXplPSIzOCIKICAgIGZvbnQtd2VpZ2h0PSI3MDAiCiAgICBmaWxsPSJ1cmwoI3RleHRHcmFkKSIKICAgIGZpbHRlcj0idXJsKCNnbG93KSIKICAgIGxldHRlci1zcGFjaW5nPSI0IgogID5JQ1M8L3RleHQ+CgogIDwhLS0gRGl2aWRlciAtLT4KICA8bGluZSB4MT0iMTA4IiB5MT0iMjU4IiB4Mj0iMjkyIiB5Mj0iMjU4IiBzdHJva2U9IiM0QURFODAiIHN0cm9rZS13aWR0aD0iMC44IiBvcGFjaXR5PSIwLjM1Ii8+CgogIDwhLS0gRnVsbCBuYW1lIC0tPgogIDx0ZXh0CiAgICB4PSIyMDAiIHk9IjI4MyIKICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICBmb250LWZhbWlseT0iJ1RyZWJ1Y2hldCBNUycsICdHaWxsIFNhbnMnLCBzYW5zLXNlcmlmIgogICAgZm9udC1zaXplPSIxMyIKICAgIGZvbnQtd2VpZ2h0PSI2MDAiCiAgICBmaWxsPSIjRENGQ0U3IgogICAgbGV0dGVyLXNwYWNpbmc9IjUiCiAgICBvcGFjaXR5PSIwLjkiCiAgPklOVEVHUkFURUQ8L3RleHQ+CgogIDx0ZXh0CiAgICB4PSIyMDAiIHk9IjMwMyIKICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICBmb250LWZhbWlseT0iJ1RyZWJ1Y2hldCBNUycsICdHaWxsIFNhbnMnLCBzYW5zLXNlcmlmIgogICAgZm9udC1zaXplPSIxMyIKICAgIGZvbnQtd2VpZ2h0PSI2MDAiCiAgICBmaWxsPSIjRENGQ0U3IgogICAgbGV0dGVyLXNwYWNpbmc9IjUiCiAgICBvcGFjaXR5PSIwLjkiCiAgPkNPTVBVVEVSPC90ZXh0PgoKICA8dGV4dAogICAgeD0iMjAwIiB5PSIzMjMiCiAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIgogICAgZm9udC1mYW1pbHk9IidUcmVidWNoZXQgTVMnLCAnR2lsbCBTYW5zJywgc2Fucy1zZXJpZiIKICAgIGZvbnQtc2l6ZT0iMTMiCiAgICBmb250LXdlaWdodD0iNjAwIgogICAgZmlsbD0iI0RDRkNFNyIKICAgIGxldHRlci1zcGFjaW5nPSI1IgogICAgb3BhY2l0eT0iMC45IgogID5TRVJWSUNFUzwvdGV4dD4KCiAgPCEtLSBBY2NlbnQgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIxNTgiIGN5PSIzNDUiIHI9IjIiICAgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC4zNSIvPgogIDxjaXJjbGUgY3g9IjE3MCIgY3k9IjM0NSIgcj0iMiIgICBmaWxsPSIjNEFERTgwIiBvcGFjaXR5PSIwLjU1Ii8+CiAgPGNpcmNsZSBjeD0iMTgyIiBjeT0iMzQ1IiByPSIyIiAgIGZpbGw9IiM0QURFODAiIG9wYWNpdHk9IjAuMzUiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIzNDUiIHI9IjMiICAgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC44IiBmaWx0ZXI9InVybCgjZ2xvdykiLz4KICA8Y2lyY2xlIGN4PSIyMTgiIGN5PSIzNDUiIHI9IjIiICAgZmlsbD0iIzRBREU4MCIgb3BhY2l0eT0iMC4zNSIvPgogIDxjaXJjbGUgY3g9IjIzMCIgY3k9IjM0NSIgcj0iMiIgICBmaWxsPSIjNEFERTgwIiBvcGFjaXR5PSIwLjU1Ii8+CiAgPGNpcmNsZSBjeD0iMjQyIiBjeT0iMzQ1IiByPSIyIiAgIGZpbGw9IiM0QURFODAiIG9wYWNpdHk9IjAuMzUiLz4KPC9zdmc+Cg=="
+                alt="ICS Logo"
+                style="width:90px; height:90px; border-radius:50%; box-shadow:0 6px 24px rgba(10,90,46,0.35), 0 0 0 3px rgba(74,222,128,0.25); display:block;" />
+        </div>
+        <div class="login-logo" id="loginLogo" style="font-size:1.3em; letter-spacing:1.5px; margin-top:6px;">Easy <span>Administration</span></div>
         <div class="login-subtitle" id="loginSubtitle">Fees Management System</div>
         <div class="login-divider"></div>
-        <div class="login-icon-wrap">🔐</div>
 
         <div class="login-error" id="loginError"></div>
 
@@ -1817,6 +1954,201 @@
 </div>
 
     <script>
+    // ══════════════════════════════════════════════════════════
+    //  ICS IndexedDB Storage — localStorage replacement
+    //  Cache clear केली तरी data safe राहतो!
+    //  सर्व localStorage calls आपोआप IndexedDB मध्ये जातात.
+    // ══════════════════════════════════════════════════════════
+    (function() {
+        'use strict';
+
+        const DB_NAME    = 'ICSComputersDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'keyvalue';
+
+        // ── In-memory sync cache (localStorage सारखाच synchronous access) ──
+        const _cache = {};
+        let _dbReady = false;
+        let _db      = null;
+
+        // ── IndexedDB उघडणे ──
+        function openDB() {
+            return new Promise(function(resolve, reject) {
+                const req = indexedDB.open(DB_NAME, DB_VERSION);
+                req.onupgradeneeded = function(e) {
+                    e.target.result.createObjectStore(STORE_NAME, { keyPath: 'k' });
+                };
+                req.onsuccess = function(e) { resolve(e.target.result); };
+                req.onerror   = function(e) { reject(e.target.error); };
+            });
+        }
+
+        // ── सर्व keys IndexedDB मधून cache मध्ये load करणे ──
+        function loadAll(db) {
+            return new Promise(function(resolve, reject) {
+                const tx  = db.transaction(STORE_NAME, 'readonly');
+                const req = tx.objectStore(STORE_NAME).getAll();
+                req.onsuccess = function() {
+                    req.result.forEach(function(row) { _cache[row.k] = row.v; });
+                    resolve();
+                };
+                req.onerror = function() { reject(req.error); };
+            });
+        }
+
+        // ── IndexedDB मध्ये एक key-value save करणे (async background) ──
+        function persistSet(key, value) {
+            if (!_db) return;
+            try {
+                const tx = _db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).put({ k: key, v: value });
+            } catch(e) { /* silent fail — cache is source of truth */ }
+        }
+
+        // ── IndexedDB मधून एक key delete करणे (async background) ──
+        function persistRemove(key) {
+            if (!_db) return;
+            try {
+                const tx = _db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).delete(key);
+            } catch(e) { /* silent */ }
+        }
+
+        // ── localStorage ला पूर्णपणे replace करणारा wrapper ──
+        const idbStorage = {
+            getItem: function(key) {
+                return Object.prototype.hasOwnProperty.call(_cache, key) ? _cache[key] : null;
+            },
+            setItem: function(key, value) {
+                _cache[key] = String(value);
+                persistSet(key, String(value));
+            },
+            removeItem: function(key) {
+                delete _cache[key];
+                persistRemove(key);
+            },
+            clear: function() {
+                const keys = Object.keys(_cache);
+                keys.forEach(function(k) { delete _cache[k]; });
+                if (!_db) return;
+                try {
+                    const tx = _db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).clear();
+                } catch(e) { /* silent */ }
+            },
+            key: function(n) {
+                return Object.keys(_cache)[n] || null;
+            },
+            get length() {
+                return Object.keys(_cache).length;
+            }
+        };
+
+        // ── App initialization: DB उघडा, सर्व data load करा, मग page चालवा ──
+        // जोपर्यंत DB ready नाही, page एक loading screen दाखवतो.
+        const _origOnLoad = window.onload;
+
+        // Loading overlay दाखवणे
+        function showDBLoader() {
+            const div = document.createElement('div');
+            div.id = 'icsDbLoader';
+            div.style.cssText = [
+                'position:fixed','top:0','left:0','width:100%','height:100%',
+                'background:linear-gradient(135deg,#0f2a35,#1a3a4a)',
+                'display:flex','flex-direction:column',
+                'align-items:center','justify-content:center',
+                'z-index:99999','color:white','font-family:DM Sans,sans-serif'
+            ].join(';');
+            div.innerHTML = [
+                '<div style="font-size:3em;margin-bottom:16px;">🎓</div>',
+                '<div style="font-size:1.3em;font-weight:700;letter-spacing:2px;margin-bottom:8px;">ICS Computers</div>',
+                '<div style="font-size:0.9em;opacity:0.7;margin-bottom:24px;">Data Loading...</div>',
+                '<div style="width:200px;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;">',
+                  '<div id="icsDbBar" style="width:0%;height:100%;background:#c8732a;border-radius:4px;transition:width 0.4s;"></div>',
+                '</div>'
+            ].join('');
+            document.body ? document.body.appendChild(div) : document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(div); });
+            return div;
+        }
+
+        function hideDBLoader() {
+            const el = document.getElementById('icsDbLoader');
+            if (el) { el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(function(){ el.remove(); },350); }
+        }
+
+        function setBarProgress(pct) {
+            const bar = document.getElementById('icsDbBar');
+            if (bar) bar.style.width = pct + '%';
+        }
+
+        // ── Startup: IndexedDB init ──
+        function initIDB() {
+            const loader = showDBLoader();
+            setBarProgress(30);
+
+            openDB().then(function(db) {
+                _db = db;
+                setBarProgress(60);
+                return loadAll(db);
+            }).then(function() {
+                setBarProgress(90);
+
+                // ── localStorage → IndexedDB migration (एकवेळ) ──
+                try {
+                    const migrated = _cache['_idb_migrated'];
+                    if (!migrated) {
+                        const lsKeys = [];
+                        for (let i = 0; i < window._origLS.length; i++) {
+                            lsKeys.push(window._origLS.key(i));
+                        }
+                        lsKeys.forEach(function(k) {
+                            if (k && k.toLowerCase().startsWith('ics')) {
+                                const val = window._origLS.getItem(k);
+                                if (val !== null && !Object.prototype.hasOwnProperty.call(_cache, k)) {
+                                    _cache[k] = val;
+                                    persistSet(k, val);
+                                }
+                            }
+                        });
+                        _cache['_idb_migrated'] = '1';
+                        persistSet('_idb_migrated', '1');
+                    }
+                } catch(e) { /* migration optional */ }
+
+                // ── window.localStorage ला replace करणे ──
+                try {
+                    Object.defineProperty(window, 'localStorage', {
+                        value: idbStorage,
+                        writable: false,
+                        configurable: true
+                    });
+                } catch(e) {
+                    // काही browsers मध्ये defineProperty नाही — fallback
+                    window.localStorage = idbStorage;
+                }
+
+                _dbReady = true;
+                setBarProgress(100);
+                setTimeout(hideDBLoader, 200);
+
+            }).catch(function(err) {
+                // IndexedDB fail झाली तर original localStorage वापरणे (fallback)
+                console.warn('ICS: IndexedDB unavailable, using localStorage:', err);
+                hideDBLoader();
+                _dbReady = true;
+            });
+        }
+
+        // Original localStorage reference save करणे (migration साठी)
+        try { window._origLS = window.localStorage; } catch(e) { window._origLS = { length:0, getItem:function(){return null;}, key:function(){return null;} }; }
+
+        // DOM ready झाल्यावर init सुरू करणे
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initIDB);
+        } else {
+            initIDB();
+        }
+    })();
         // ══════════════════════════════════════════════════════════
         //  AUTH & EXPIRY SYSTEM
         // ══════════════════════════════════════════════════════════
@@ -1957,8 +2289,54 @@
             }
         }
 
+        // ══════════════════════════════════════════════════════════
+        //  AUTO-BACKUP — Logout / Browser Close वेळी
+        // ══════════════════════════════════════════════════════════
+        function autoBackupSilent(reason) {
+            try {
+                const enquiries = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+                const expenses  = JSON.parse(localStorage.getItem('icsExpenses')  || '[]');
+                const batches   = JSON.parse(localStorage.getItem('icsBatches')   || '{}');
+                const allStudents = JSON.parse(localStorage.getItem('icsStudents') || '[]');
+                const total = allStudents.length + enquiries.length + expenses.length;
+                if (total === 0) return;
+
+                const now     = new Date();
+                const dateStr = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0');
+                const timeStr = String(now.getHours()).padStart(2,'0') +
+                    String(now.getMinutes()).padStart(2,'0');
+                const ci   = window.currentCenterInfo || { centerName: 'ICS Computers' };
+                const user = currentLoggedInUser ? currentLoggedInUser.username : 'auto';
+
+                const backup = {
+                    version: '2.0', backupType: 'AUTO-' + (reason || 'AUTO'),
+                    exportedAt: now.toISOString(), exportedBy: ci.centerName, exportedUser: user,
+                    summary: { totalStudents: allStudents.length, totalEnquiries: enquiries.length,
+                               totalExpenses: expenses.length, totalBatches: Object.keys(batches).length },
+                    students: allStudents, enquiries: enquiries, expenses: expenses, batches: batches
+                };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href = url;
+                a.download = 'ICS_AutoBackup_' + dateStr + '_' + timeStr + '.json';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+            } catch(e) { /* silent */ }
+        }
+
+        // Browser बंद / Tab close / Refresh वेळी auto-backup
+        window.addEventListener('beforeunload', function() {
+            if (currentLoggedInUser) autoBackupSilent('CLOSE');
+        });
+
         function logoutNow() {
             if (!confirm('🚪 Logout from ICS Fees Management System?')) return;
+            autoBackupSilent('LOGOUT');
             document.getElementById('loginUsernameInput').value = '';
             document.getElementById('loginPasswordInput').value = '';
             document.getElementById('loginError').style.display = 'none';
@@ -2351,11 +2729,13 @@
             }
         }
 
-        // Check password for Quick Actions (uses current dynamic login password)
+        // Check password — logged-in user चा स्वतःचा password वापरतो
         function checkPassword(actionName) {
-            const password = prompt('🔒 Enter admin password to access ' + actionName + ':');
+            const user = currentLoggedInUser;
+            const username = user ? user.username : 'user';
+            const password = prompt('🔒 "' + actionName + '" साठी तुमचा login password टाका (@' + username + '):');
             if (password === null) return false;
-            if (password !== getLoginPassword()) {
+            if (!user || password !== user.password) {
                 alert('❌ Incorrect password! Access denied.');
                 return false;
             }
@@ -3429,37 +3809,68 @@ ${paymentsText}
         // ── BACKUP & RESTORE ──
 
         function backupData() {
-            if (students.length === 0) {
-                alert('⚠️ No data to backup! Add some students first.');
+            // तिन्ही data sources गोळा करा
+            const enquiries = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+            const expenses  = JSON.parse(localStorage.getItem('icsExpenses')  || '[]');
+            const batches   = JSON.parse(localStorage.getItem('icsBatches')   || '{}');
+
+            const totalRecords = students.length + enquiries.length + expenses.length;
+            if (totalRecords === 0) {
+                alert('⚠️ Backup साठी कोणताही data नाही!\nआधी students, enquiries किंवा expenses add करा.');
                 return;
             }
-            const backup = {
-                version: '1.0',
-                exportedAt: new Date().toISOString(),
-                exportedBy: 'ICS Computers Fees Management',
-                totalStudents: students.length,
-                students: students
-            };
-            const json = JSON.stringify(backup, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const now = new Date();
+
+            const now     = new Date();
             const dateStr = now.getFullYear() + '-' +
                 String(now.getMonth() + 1).padStart(2, '0') + '-' +
                 String(now.getDate()).padStart(2, '0');
-            a.href = url;
-            a.download = 'ICS_Backup_' + dateStr + '.json';
+            const ci = window.currentCenterInfo || { centerName: 'ICS Computers' };
+
+            const backup = {
+                version:      '2.0',
+                backupType:   'FULL',
+                exportedAt:   now.toISOString(),
+                exportedBy:   ci.centerName,
+                exportedUser: currentLoggedInUser ? currentLoggedInUser.username : 'unknown',
+                summary: {
+                    totalStudents:  students.length,
+                    totalEnquiries: enquiries.length,
+                    totalExpenses:  expenses.length,
+                    totalBatches:   Object.keys(batches).length
+                },
+                students:   students,
+                enquiries:  enquiries,
+                expenses:   expenses,
+                batches:    batches
+            };
+
+            const json = JSON.stringify(backup, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = 'ICS_FullBackup_' + dateStr + '.json';
+            a.style.display = 'none';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            alert('✅ Backup saved successfully!\nFile: ICS_Backup_' + dateStr + '.json\nStudents backed up: ' + students.length);
+
+            alert(
+                '✅ Full Backup saved!\n\n' +
+                '📄 File: ICS_FullBackup_' + dateStr + '.json\n\n' +
+                '📊 Backup Summary:\n' +
+                '   👨‍🎓 Students   : ' + students.length  + '\n' +
+                '   📋 Enquiries  : ' + enquiries.length + '\n' +
+                '   💸 Expenses   : ' + expenses.length  + '\n' +
+                '   🕐 Batches    : ' + Object.keys(batches).filter(function(k){ return batches[k].length>0; }).length + '\n' +
+                '   📦 Total      : ' + (students.length + enquiries.length + expenses.length) + ' records'
+            );
         }
 
         function restoreData(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            // Reset file input so same file can be re-selected if needed
             event.target.value = '';
 
             const reader = new FileReader();
@@ -3467,63 +3878,143 @@ ${paymentsText}
                 try {
                     const backup = JSON.parse(e.target.result);
 
-                    // Validate structure
+                    // ── Version detect: v2.0 (full) vs v1.0 (students only) ──
+                    const isFullBackup = backup.version === '2.0' || backup.backupType === 'FULL';
+
+                    // Validate: किमान students array असायला हवे
                     if (!backup.students || !Array.isArray(backup.students)) {
-                        alert('❌ Invalid backup file! The file does not contain valid student data.');
+                        alert('❌ Invalid backup file!\nValid ICS backup JSON file निवडा.');
                         return;
                     }
 
-                    const count = backup.students.length;
+                    const bkStudents  = backup.students   || [];
+                    const bkEnquiries = backup.enquiries  || [];
+                    const bkExpenses  = backup.expenses   || [];
+                    const bkBatches   = backup.batches    || {};
+
+                    const curEnquiries = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+                    const curExpenses  = JSON.parse(localStorage.getItem('icsExpenses')  || '[]');
+
                     const exportedAt = backup.exportedAt
-                        ? new Date(backup.exportedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                        ? new Date(backup.exportedAt).toLocaleDateString('en-IN', {
+                            day:'2-digit', month:'short', year:'numeric',
+                            hour:'2-digit', minute:'2-digit' })
                         : 'Unknown';
 
+                    // ── Info dialog ──
                     const choice = confirm(
-                        '📂 Backup File Detected!\n\n' +
-                        '• Students in backup: ' + count + '\n' +
-                        '• Backed up on: ' + exportedAt + '\n' +
-                        '• Current students: ' + students.length + '\n\n' +
-                        'Choose restore mode:\n' +
-                        '• OK = REPLACE all current data with backup\n' +
-                        '• Cancel = Merge backup into current data (no duplicates)'
+                        '📂 ' + (isFullBackup ? 'Full Backup' : 'Student-only Backup') + ' सापडली!\n\n' +
+                        '━━━━ Backup मधील data ━━━━\n' +
+                        '👨‍🎓 Students   : ' + bkStudents.length  + '\n' +
+                        '📋 Enquiries  : ' + bkEnquiries.length + '\n' +
+                        '💸 Expenses   : ' + bkExpenses.length  + '\n' +
+                        '📅 Date       : ' + exportedAt         + '\n\n' +
+                        '━━━━ सध्याचा data ━━━━\n' +
+                        '👨‍🎓 Students   : ' + students.length    + '\n' +
+                        '📋 Enquiries  : ' + curEnquiries.length + '\n' +
+                        '💸 Expenses   : ' + curExpenses.length  + '\n\n' +
+                        'Restore mode निवडा:\n' +
+                        '✅ OK     = REPLACE — सध्याचा data काढून backup टाका\n' +
+                        '❌ Cancel = MERGE  — backup सोबत merge करा'
                     );
 
                     if (choice) {
-                        // Replace mode
-                        const pwd = prompt('🔒 Enter admin password to REPLACE all data:');
-                        if (pwd !== getLoginPassword()) {
+                        // ── REPLACE mode — logged-in user चा password verify करा ──
+                        const user     = currentLoggedInUser;
+                        const username = user ? user.username : 'user';
+                        const pwd = prompt(
+                            '🔒 सर्व data REPLACE होणार आहे!\n\n' +
+                            'Confirm करण्यासाठी तुमचा login password टाका (@' + username + '):'
+                        );
+                        if (pwd === null) { alert('⚠️ Restore रद्द केले.'); return; }
+                        if (!user || pwd !== user.password) {
                             alert('❌ Incorrect password! Restore cancelled.');
                             return;
                         }
-                        students = backup.students;
+
+                        // Students restore
+                        students = bkStudents;
                         localStorage.setItem('icsStudents', JSON.stringify(students));
+
+                        // Enquiries restore
+                        localStorage.setItem('icsEnquiries', JSON.stringify(bkEnquiries));
+
+                        // Expenses restore
+                        localStorage.setItem('icsExpenses', JSON.stringify(bkExpenses));
+
+                        // Batches restore
+                        localStorage.setItem('icsBatches', JSON.stringify(bkBatches));
+
+                        // UI refresh
                         updateStatistics();
                         displayStudents();
                         setNextReceiptNumber();
-                        alert('✅ Data restored successfully!\n' + count + ' students loaded.');
+                        renderEnquiries();
+                        renderExpenses();
+
+                        alert(
+                            '✅ Full Restore successful!\n\n' +
+                            '👨‍🎓 Students   : ' + bkStudents.length  + '\n' +
+                            '📋 Enquiries  : ' + bkEnquiries.length + '\n' +
+                            '💸 Expenses   : ' + bkExpenses.length  + '\n' +
+                            '🕐 Batches    : ' + Object.keys(bkBatches).length + '\n\n' +
+                            'User: @' + username
+                        );
+
                     } else {
-                        // Merge mode — skip duplicates by id and receiptNo
-                        const existingIds = new Set(students.map(s => s.id));
+                        // ── MERGE mode — password नाही, smart merge ──
+                        // Students merge
+                        const existingIds      = new Set(students.map(s => s.id));
                         const existingReceipts = new Set(students.map(s => s.receiptNo));
-                        let added = 0, skipped = 0;
-                        backup.students.forEach(s => {
+                        let stAdded = 0, stSkipped = 0;
+                        bkStudents.forEach(s => {
                             if (existingIds.has(s.id) || existingReceipts.has(s.receiptNo)) {
-                                skipped++;
+                                stSkipped++;
                             } else {
                                 students.push(s);
                                 existingIds.add(s.id);
                                 existingReceipts.add(s.receiptNo);
-                                added++;
+                                stAdded++;
                             }
                         });
                         localStorage.setItem('icsStudents', JSON.stringify(students));
+
+                        // Enquiries merge
+                        const curEnqs   = JSON.parse(localStorage.getItem('icsEnquiries') || '[]');
+                        const enqIds    = new Set(curEnqs.map(e => e.id));
+                        let enqAdded = 0, enqSkipped = 0;
+                        bkEnquiries.forEach(e => {
+                            if (enqIds.has(e.id)) { enqSkipped++; }
+                            else { curEnqs.push(e); enqIds.add(e.id); enqAdded++; }
+                        });
+                        localStorage.setItem('icsEnquiries', JSON.stringify(curEnqs));
+
+                        // Expenses merge
+                        const curExps  = JSON.parse(localStorage.getItem('icsExpenses') || '[]');
+                        const expIds   = new Set(curExps.map(e => e.id));
+                        let expAdded = 0, expSkipped = 0;
+                        bkExpenses.forEach(e => {
+                            if (expIds.has(e.id)) { expSkipped++; }
+                            else { curExps.push(e); expIds.add(e.id); expAdded++; }
+                        });
+                        localStorage.setItem('icsExpenses', JSON.stringify(curExps));
+
+                        // UI refresh
                         updateStatistics();
                         displayStudents();
                         setNextReceiptNumber();
-                        alert('✅ Merge complete!\nAdded: ' + added + ' students\nSkipped (duplicates): ' + skipped);
+                        renderEnquiries();
+                        renderExpenses();
+
+                        alert(
+                            '✅ Merge complete!\n\n' +
+                            '👨‍🎓 Students  — Added: ' + stAdded  + '  Skipped: ' + stSkipped  + '\n' +
+                            '📋 Enquiries — Added: ' + enqAdded + '  Skipped: ' + enqSkipped + '\n' +
+                            '💸 Expenses  — Added: ' + expAdded + '  Skipped: ' + expSkipped
+                        );
                     }
                 } catch (err) {
-                    alert('❌ Failed to read backup file!\nMake sure you selected a valid ICS backup JSON file.\n\nError: ' + err.message);
+                    alert('❌ Backup file वाचता आली नाही!\nValid ICS backup JSON file निवडा.\n\nError: ' + err.message);
                 }
             };
             reader.readAsText(file);
@@ -4048,58 +4539,10 @@ function switchTab(tabId) {
     document.getElementById('tab-' + tabId).classList.add('active');
 
     // Refresh tab-specific data
-    if (tabId === 'receipt') renderReceiptTab();
     if (tabId === 'enquiry') renderEnquiries();
     if (tabId === 'expenses') renderExpenses();
     if (tabId === 'settings') loadSettingsTab();
-}
-
-// ══════════════════════════════════════════════
-// PAYMENT RECEIPT TAB
-// ══════════════════════════════════════════════
-function renderReceiptTab(data) {
-    var list = data !== undefined ? data : students;
-    var tbody = document.getElementById('receiptTableBody');
-    if (!tbody) return;
-    if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><div style="font-size:2.5em;">🧾</div><p>कोणताही student सापडला नाही.</p></td></tr>';
-        return;
-    }
-    var sorted = list.slice().sort(function(a,b){ return b.receiptNo - a.receiptNo; });
-    tbody.innerHTML = sorted.map(function(s) {
-        var st = s.balance === 0 ? '<span class="badge badge-success">Paid</span>' :
-                 s.paidFees > 0  ? '<span class="badge badge-warning">Partial</span>' :
-                                   '<span class="badge badge-danger">Pending</span>';
-        return '<tr>' +
-            '<td><strong>' + s.receiptNo + '</strong></td>' +
-            '<td>' + s.name + '</td>' +
-            '<td>' + s.mobile + '</td>' +
-            '<td>' + s.course + '</td>' +
-            '<td>₹' + s.totalFees.toLocaleString('en-IN') + '</td>' +
-            '<td>₹' + s.paidFees.toLocaleString('en-IN') + '</td>' +
-            '<td><strong>₹' + s.balance.toLocaleString('en-IN') + '</strong></td>' +
-            '<td>' + st + '</td>' +
-            '<td><button class="btn btn-info btn-small" onclick="downloadReceipt(' + s.id + ')">📄 Download</button>' +
-            (s.balance > 0 ? '<button class="btn btn-success btn-small" onclick="openPaymentModal(' + s.id + '); switchTab(\'dashboard\')" style="margin-top:4px;">💰 Pay</button>' : '') +
-            '</td></tr>';
-    }).join('');
-}
-
-function searchForReceipt() {
-    var term = document.getElementById('receiptSearchInput').value.toLowerCase().trim();
-    if (!term) { renderReceiptTab(); return; }
-    var filtered = students.filter(function(s) {
-        return s.name.toLowerCase().includes(term) ||
-               s.mobile.includes(term) ||
-               String(s.receiptNo).includes(term) ||
-               s.course.toLowerCase().includes(term);
-    });
-    renderReceiptTab(filtered);
-}
-
-function showAllForReceipt() {
-    document.getElementById('receiptSearchInput').value = '';
-    renderReceiptTab();
+    if (tabId === 'center') loadCenterTab();
 }
 
 // ══════════════════════════════════════════════
@@ -4285,6 +4728,442 @@ function exportEnquiryExcel() {
 
     alert('✅ Enquiry Excel export झाली!\n\n📄 File: ' + fileName + '\n📊 Records: ' + data.length + ' (' + filterLabel + ')\n\n💡 Excel मध्ये उघडा — columns आणि data व्यवस्थित दिसेल.');
 }
+
+// ══════════════════════════════════════════════
+// CENTER TAB — BATCH MANAGEMENT (v2)
+// ══════════════════════════════════════════════
+
+var ALL_BATCH_SLOTS = [
+    '7-8 AM','8-9 AM','9-10 AM','10-11 AM','11-12 PM',
+    '12-1 PM','1-2 PM','2-3 PM','3-4 PM','4-5 PM',
+    '5-6 PM','6-7 PM','7-8 PM'
+];
+
+var SLOT_EMOJI = {
+    '7-8 AM':'🌅','8-9 AM':'🌄','9-10 AM':'☀️','10-11 AM':'🌤️',
+    '11-12 PM':'🌞','12-1 PM':'🕛','1-2 PM':'🌻','2-3 PM':'☁️',
+    '3-4 PM':'🌥️','4-5 PM':'🌇','5-6 PM':'🌆','6-7 PM':'🌃','7-8 PM':'🌙'
+};
+
+function getBatches() {
+    return JSON.parse(localStorage.getItem('icsBatches') || '{}');
+}
+function saveBatches(obj) {
+    localStorage.setItem('icsBatches', JSON.stringify(obj));
+}
+
+// ── सर्व assigned student IDs एका Set मध्ये ──
+function getAllAssignedIds() {
+    var batches = getBatches();
+    var ids = new Set();
+    Object.values(batches).forEach(function(arr) {
+        arr.forEach(function(id) { ids.add(id); });
+    });
+    return ids;
+}
+
+// ── कोणत्या batch मध्ये student आहे ──
+function getStudentBatch(studentId) {
+    var batches = getBatches();
+    for (var slot in batches) {
+        if (batches[slot].includes(studentId)) return slot;
+    }
+    return null;
+}
+
+function loadCenterTab() {
+    updateBatchStats();
+    renderBatchSummary();
+    var sel = document.getElementById('batchSelect');
+    if (sel) sel.value = '';
+    document.getElementById('batchStudentSelectWrap').style.display = 'none';
+    document.getElementById('batchSelectPrompt').style.display = 'block';
+    document.getElementById('batchInfoBox').style.display = 'none';
+}
+
+function updateBatchStats() {
+    var batches = getBatches();
+    var assignedIds = getAllAssignedIds();
+    var activeBatches = ALL_BATCH_SLOTS.filter(function(s){ return (batches[s]||[]).length > 0; }).length;
+    var unassigned = students.length - assignedIds.size;
+
+    var s = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    s('batchStatTotal',      activeBatches);
+    s('batchStatStudents',   students.length);
+    s('batchStatAssigned',   assignedIds.size);
+    s('batchStatUnassigned', unassigned < 0 ? 0 : unassigned);
+}
+
+function onBatchSelect() {
+    var slot = document.getElementById('batchSelect').value;
+    var wrap   = document.getElementById('batchStudentSelectWrap');
+    var prompt = document.getElementById('batchSelectPrompt');
+    var info   = document.getElementById('batchInfoBox');
+
+    if (!slot) {
+        wrap.style.display = 'none';
+        prompt.style.display = 'block';
+        info.style.display = 'none';
+        return;
+    }
+
+    wrap.style.display = 'block';
+    prompt.style.display = 'none';
+    document.getElementById('batchStudentSearch').value = '';
+    refreshBatchLeftPanel(slot);
+}
+
+// ── Left panel refresh: unassigned students दाखवणे ──
+function refreshBatchLeftPanel(slot) {
+    if (!slot) return;
+    var batches  = getBatches();
+    var assigned = batches[slot] || [];
+    var allAssigned = getAllAssignedIds();
+
+    // Info box update
+    var info = document.getElementById('batchInfoBox');
+    if (info) {
+        info.style.display = 'block';
+        info.innerHTML = SLOT_EMOJI[slot] + ' <strong>' + slot + '</strong> — ' +
+            '<strong>' + assigned.length + '</strong> students assigned' +
+            ' &nbsp;|&nbsp; ' +
+            '<strong>' + (students.length - allAssigned.size) + '</strong> unassigned';
+    }
+
+    var term = (document.getElementById('batchStudentSearch') || {}).value || '';
+    renderBatchStudentList(slot, term);
+}
+
+// ── फक्त UNASSIGNED students दाखवणे ──
+function renderBatchStudentList(slot, searchTerm) {
+    var allAssigned = getAllAssignedIds();
+    var container   = document.getElementById('batchStudentList');
+    if (!container) return;
+
+    // Unassigned students (किसीही batch मध्ये नाहीत)
+    var unassigned = students.filter(function(s) {
+        return !allAssigned.has(s.id);
+    });
+
+    // Search filter
+    var term = (searchTerm || '').toLowerCase().trim();
+    if (term) {
+        unassigned = unassigned.filter(function(s) {
+            return s.name.toLowerCase().includes(term) ||
+                   s.mobile.includes(term) ||
+                   s.course.toLowerCase().includes(term);
+        });
+    }
+
+    // Unassigned count badge update
+    var badge = document.getElementById('unassignedCountBadge');
+    if (badge) badge.textContent = students.filter(function(s){ return !allAssigned.has(s.id); }).length;
+
+    if (unassigned.length === 0) {
+        var msg = allAssigned.size >= students.length
+            ? '<div style="padding:18px; text-align:center; color:var(--success); font-size:0.88em; font-weight:600;">✅ सर्व students assigned आहेत!</div>'
+            : '<div style="padding:18px; text-align:center; color:var(--text-light); font-size:0.88em;">कोणताही student सापडला नाही.</div>';
+        container.innerHTML = msg;
+        updateBatchSelectedCount();
+        return;
+    }
+
+    container.innerHTML = unassigned.map(function(s) {
+        var statusLabel = s.balance === 0
+            ? '<span style="font-size:0.7em;background:#c8e6d4;color:#1b4332;padding:1px 6px;border-radius:8px;font-weight:600;margin-left:4px;">Paid</span>'
+            : s.paidFees > 0
+            ? '<span style="font-size:0.7em;background:#fde8c3;color:#7a4f10;padding:1px 6px;border-radius:8px;font-weight:600;margin-left:4px;">Partial</span>'
+            : '<span style="font-size:0.7em;background:#f5cece;color:#5c1a1a;padding:1px 6px;border-radius:8px;font-weight:600;margin-left:4px;">Pending</span>';
+
+        var safeSlot = slot.replace(/'/g,"\\'");
+        return '<div class="batch-student-item" id="bsi-' + s.id + '" onclick="toggleBatchCheckbox(' + s.id + ')">' +
+            '<input type="checkbox" id="bsc-' + s.id + '" onclick="event.stopPropagation(); toggleBatchCheckbox(' + s.id + ')">' +
+            '<div style="flex:1; min-width:0;">' +
+            '<div style="font-weight:600; font-size:0.88em; color:var(--text-dark);">' + s.name + statusLabel + '</div>' +
+            '<div style="font-size:0.76em; color:var(--text-mid); margin-top:1px;">📚 ' + s.course + ' • 📱 ' + s.mobile + '</div>' +
+            '</div>' +
+            '<div style="font-size:0.75em; color:var(--text-light); flex-shrink:0;">#' + s.receiptNo + '</div>' +
+            '</div>';
+    }).join('');
+
+    updateBatchSelectedCount();
+}
+
+function toggleBatchCheckbox(studentId) {
+    var cb  = document.getElementById('bsc-' + studentId);
+    var row = document.getElementById('bsi-' + studentId);
+    if (!cb || !row) return;
+    cb.checked = !cb.checked;
+    row.classList.toggle('selected', cb.checked);
+    updateBatchSelectedCount();
+}
+
+function updateBatchSelectedCount() {
+    var checked = document.querySelectorAll('#batchStudentList input[type="checkbox"]:checked').length;
+    var el = document.getElementById('batchSelectedCount');
+    if (el) el.textContent = checked + ' selected';
+}
+
+function filterBatchStudentList() {
+    var slot = document.getElementById('batchSelect').value;
+    var term = document.getElementById('batchStudentSearch').value;
+    if (slot) renderBatchStudentList(slot, term);
+}
+
+function batchSelectAll() {
+    document.querySelectorAll('#batchStudentList input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = true;
+        var row = cb.closest('.batch-student-item');
+        if (row) row.classList.add('selected');
+    });
+    updateBatchSelectedCount();
+}
+
+function batchClearAll() {
+    document.querySelectorAll('#batchStudentList input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = false;
+        var row = cb.closest('.batch-student-item');
+        if (row) row.classList.remove('selected');
+    });
+    updateBatchSelectedCount();
+}
+
+// ── Selected students या batch मध्ये add करा ──
+function assignSelectedToBatch() {
+    var slot = document.getElementById('batchSelect').value;
+    if (!slot) { alert('⚠️ आधी batch निवडा!'); return; }
+
+    var checked = document.querySelectorAll('#batchStudentList input[type="checkbox"]:checked');
+    if (checked.length === 0) {
+        alert('⚠️ कोणताही student select केला नाही!\nCheckbox tick करा मग Add करा.');
+        return;
+    }
+
+    var batches = getBatches();
+    if (!batches[slot]) batches[slot] = [];
+    var added = 0;
+
+    checked.forEach(function(cb) {
+        var id = parseInt(cb.id.replace('bsc-', ''));
+        if (!isNaN(id) && !batches[slot].includes(id)) {
+            batches[slot].push(id);
+            added++;
+        }
+    });
+
+    saveBatches(batches);
+    updateBatchStats();
+    renderBatchSummary();
+    refreshBatchLeftPanel(slot); // list refresh — assigned students आता दिसणार नाहीत
+    batchClearAll();
+
+    // Success toast
+    showBatchToast('✅ ' + added + ' student' + (added !== 1 ? 's' : '') + ' → ' + slot + ' मध्ये add झाले!', 'success');
+}
+
+// ── Student ला batch मधून remove करा ──
+function removeFromBatch(studentId, slot) {
+    var batches = getBatches();
+    if (!batches[slot]) return;
+    batches[slot] = batches[slot].filter(function(id) { return id !== studentId; });
+    if (batches[slot].length === 0) delete batches[slot];
+    saveBatches(batches);
+
+    updateBatchStats();
+    renderBatchSummary();
+
+    // Left panel refresh if same slot selected
+    var currentSlot = document.getElementById('batchSelect').value;
+    if (currentSlot) refreshBatchLeftPanel(currentSlot);
+
+    var st = students.find(function(s){ return s.id === studentId; });
+    showBatchToast('↩️ ' + (st ? st.name : 'Student') + ' → unassigned झाला', 'info');
+}
+
+// ── Student ची batch change करा ──
+function changeBatch(studentId, newSlot) {
+    if (!newSlot) return;
+    var batches = getBatches();
+
+    // जुन्या batch मधून remove
+    Object.keys(batches).forEach(function(slot) {
+        batches[slot] = batches[slot].filter(function(id){ return id !== studentId; });
+        if (batches[slot].length === 0) delete batches[slot];
+    });
+
+    // नवीन batch मध्ये add
+    if (!batches[newSlot]) batches[newSlot] = [];
+    if (!batches[newSlot].includes(studentId)) batches[newSlot].push(studentId);
+
+    saveBatches(batches);
+    updateBatchStats();
+    renderBatchSummary();
+
+    var currentSlot = document.getElementById('batchSelect').value;
+    if (currentSlot) refreshBatchLeftPanel(currentSlot);
+
+    var st = students.find(function(s){ return s.id === studentId; });
+    showBatchToast('🔄 ' + (st ? st.name : 'Student') + ' → ' + newSlot + ' मध्ये move झाला', 'success');
+}
+
+// ── Right panel: Batch Summary with delete + change ──
+function renderBatchSummary() {
+    var batches = getBatches();
+    var slots = ALL_BATCH_SLOTS.filter(function(s){ return batches[s] && batches[s].length > 0; });
+    var cont = document.getElementById('batchSummaryContainer');
+    if (!cont) return;
+
+    if (slots.length === 0) {
+        cont.innerHTML = '<div class="empty-state"><div style="font-size:2.5em;">🏫</div><p>कोणत्याही batch मध्ये students नाहीत.<br>डाव्या बाजूने batch निवडून students add करा.</p></div>';
+        return;
+    }
+
+    cont.innerHTML = slots.map(function(slot) {
+        var ids = batches[slot] || [];
+        var slotStudents = ids.map(function(id){ return students.find(function(s){ return s.id === id; }); }).filter(Boolean);
+        var emoji = SLOT_EMOJI[slot] || '🕐';
+
+        // Change batch options (current slot exclude)
+        var otherSlots = ALL_BATCH_SLOTS.filter(function(s){ return s !== slot; });
+        var changeOpts = otherSlots.map(function(s){
+            return '<option value="' + s + '">' + (SLOT_EMOJI[s]||'') + ' ' + s + '</option>';
+        }).join('');
+
+        var rows = slotStudents.map(function(s) {
+            var statusDot = s.balance === 0 ? '🟢' : s.paidFees > 0 ? '🟡' : '🔴';
+            return '<div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid #ede6db; flex-wrap:wrap;">' +
+                '<div style="flex:1; min-width:0;">' +
+                '<div style="font-size:0.88em; font-weight:600; color:var(--text-dark);">' + statusDot + ' ' + s.name + '</div>' +
+                '<div style="font-size:0.75em; color:var(--text-mid);">📚 ' + s.course + ' • 📱 ' + s.mobile + '</div>' +
+                '</div>' +
+                // Batch change dropdown
+                '<select onchange="changeBatch(' + s.id + ', this.value); this.value=\'\'" ' +
+                    'title="Batch बदला" ' +
+                    'style="padding:3px 6px; font-size:0.75em; border:1.5px solid var(--border); border-radius:6px; background:#fdfaf6; color:var(--text-dark); font-family:\'DM Sans\',sans-serif; cursor:pointer; flex-shrink:0;">' +
+                '<option value="">🔄 Change</option>' + changeOpts +
+                '</select>' +
+                // Delete button
+                '<button onclick="removeFromBatch(' + s.id + ',\'' + slot.replace(/'/g,"\\'") + '\')" ' +
+                    'title="Batch मधून remove करा" ' +
+                    'style="padding:4px 9px; background:linear-gradient(135deg,#8b2a2a,#b03a3a); color:white; border:none; border-radius:6px; font-size:0.8em; cursor:pointer; flex-shrink:0; font-weight:700;">🗑️</button>' +
+                '</div>';
+        }).join('');
+
+        return '<div class="batch-slot-card" style="margin-bottom:12px;">' +
+            '<div class="batch-slot-header" style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<span>' + emoji + ' <strong>' + slot + '</strong></span>' +
+            '<span style="background:rgba(200,115,42,0.5); padding:2px 10px; border-radius:12px; font-size:0.82em;">' + slotStudents.length + ' Students</span>' +
+            '</div>' +
+            '<div style="padding:0;">' + rows + '</div>' +
+            '</div>';
+    }).join('');
+}
+
+// ── Toast notification ──
+function showBatchToast(msg, type) {
+    var existing = document.getElementById('batchToast');
+    if (existing) existing.remove();
+    var colors = { success: '#2d6a4f:#c8e6d4', info: '#1a3a4a:#d0e8f5', warn: '#7a4f10:#fde8c3' };
+    var c = (colors[type] || colors.info).split(':');
+    var toast = document.createElement('div');
+    toast.id = 'batchToast';
+    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:' + c[0] + ';color:white;padding:10px 22px;border-radius:10px;font-size:0.9em;font-weight:600;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,0.25);border:1.5px solid ' + c[1] + ';max-width:90vw;text-align:center;';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 2800);
+}
+
+function saveBatchStudents() {
+    // legacy — now auto-saved, just refresh
+    var slot = document.getElementById('batchSelect').value;
+    updateBatchStats();
+    renderBatchSummary();
+    if (slot) refreshBatchLeftPanel(slot);
+}
+
+function exportBatchExcel() {
+    var batches = getBatches();
+    var slots = ALL_BATCH_SLOTS.filter(function(s){ return batches[s] && batches[s].length > 0; });
+
+    if (slots.length === 0) {
+        alert('⚠️ Export साठी कोणत्याही batch मध्ये students नाहीत!\nआधी students assign करा.');
+        return;
+    }
+
+    var ci = window.currentCenterInfo || { centerName: 'ICS Computers' };
+    var now = new Date();
+    var dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
+    var BOM = '\uFEFF';
+
+    var csv = BOM;
+    csv += '"' + ci.centerName.toUpperCase() + ' — Batch / Time Slot Report"\n';
+    csv += '"Generated: ' + dateStr + '  |  Total Batches: ' + slots.length + '"\n';
+    csv += '\n';
+
+    // Overall summary sheet
+    csv += '"=== BATCH SUMMARY ==="\n';
+    csv += '"Batch / Slot","Total Students","Student Names"\n';
+    slots.forEach(function(slot) {
+        var ids = batches[slot] || [];
+        var slotStudents = ids.map(function(id){ return students.find(function(s){ return s.id === id; }); }).filter(Boolean);
+        var names = slotStudents.map(function(s){ return s.name; }).join(' | ');
+        csv += '"' + slot + '","' + slotStudents.length + '","' + names + '"\n';
+    });
+    csv += '\n';
+
+    // Detailed section — each slot with full student details
+    csv += '"=== DETAILED BATCH DATA ==="\n';
+
+    slots.forEach(function(slot) {
+        var ids = batches[slot] || [];
+        var slotStudents = ids.map(function(id){ return students.find(function(s){ return s.id === id; }); }).filter(Boolean);
+
+        csv += '\n"BATCH: ' + slot + '  (' + slotStudents.length + ' Students)"\n';
+        csv += '"Sr.","Receipt No.","Student Name","Mobile","Course","Total Fees","Paid Fees","Balance","Status"\n';
+
+        slotStudents.forEach(function(s, i) {
+            var status = s.balance === 0 ? 'Paid' : s.paidFees > 0 ? 'Partial' : 'Pending';
+            csv += [
+                i + 1,
+                s.receiptNo,
+                '"' + s.name.replace(/"/g,'""') + '"',
+                '"' + s.mobile + '"',
+                '"' + s.course + '"',
+                s.totalFees,
+                s.paidFees,
+                s.balance,
+                '"' + status + '"'
+            ].join(',') + '\n';
+        });
+    });
+
+    // Footer stats
+    csv += '\n"=== STATISTICS ==="\n';
+    var totalAssignedIds = new Set();
+    slots.forEach(function(slot){ (batches[slot]||[]).forEach(function(id){ totalAssignedIds.add(id); }); });
+    csv += '"Total Active Batches","' + slots.length + '"\n';
+    csv += '"Total Students (all)","' + students.length + '"\n';
+    csv += '"Assigned Students","' + totalAssignedIds.size + '"\n';
+    csv += '"Unassigned Students","' + (students.length - totalAssignedIds.size) + '"\n';
+
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    var fileName = (ci.centerName.replace(/\s+/g,'_') || 'ICS') + '_Batch_Report_' +
+        now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + '.csv';
+    a.href = url;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('✅ Batch Excel Export झाली!\n\n📄 File: ' + fileName + '\n🕐 Batches: ' + slots.length + '\n👨‍🎓 Assigned: ' + totalAssignedIds.size + ' students');
+}
+
+// Also include batch data in full backup/restore
+// (handled via localStorage key 'icsBatches' — already part of clearAndResetStorage)
 
 // Populate enquiry course dropdown
 function populateEnquiryCourseDrop() {
