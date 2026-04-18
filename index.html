@@ -1726,6 +1726,66 @@
         </div>
     </div>
 
+    <!-- Edit Student Modal -->
+    <div class="modal" id="editStudentModal" style="display:none;">
+        <div class="modal-content" style="max-width:520px;">
+            <div class="modal-header">
+                <h2 style="font-family:'Playfair Display',serif; font-size:1.2em; color:var(--text-dark);">✏️ Edit Student</h2>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+
+            <input type="hidden" id="editStudentId">
+
+            <div class="form-group">
+                <label>Receipt Number</label>
+                <input type="number" id="editReceiptNo" class="form-control" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+            </div>
+
+            <div class="form-group">
+                <label>Student Name <span class="required">*</span></label>
+                <input type="text" id="editStudentName" class="form-control" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number <span class="required">*</span></label>
+                <input type="tel" id="editMobile" maxlength="10" class="form-control" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+            </div>
+
+            <div class="form-group">
+                <label>Course <span class="required">*</span></label>
+                <select id="editCourse" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+                    <option value="">Select Course</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Admission Date</label>
+                <input type="date" id="editAdmissionDate" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label>Total Fees <span class="required">*</span></label>
+                    <input type="number" id="editTotalFees" min="0" oninput="recalcEditBalance()" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+                </div>
+                <div class="form-group">
+                    <label>Paid Fees</label>
+                    <input type="number" id="editPaidFees" min="0" oninput="recalcEditBalance()" style="background:var(--bg-panel-alt); border:1px solid var(--border); border-radius:8px; padding:10px 14px; width:100%; font-family:'DM Sans',sans-serif; font-size:0.95em; color:var(--text-dark);">
+                </div>
+            </div>
+
+            <div style="background:linear-gradient(135deg,#1a3a4a,#1e4d5e); border-radius:10px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <span style="color:rgba(255,255,255,0.8); font-size:0.9em;">Balance Fees</span>
+                <span id="editBalanceDisplay" style="color:#e8c87a; font-weight:700; font-size:1.15em;">₹0</span>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="saveEditStudent()">✅ Save Changes</button>
+                <button class="btn btn-danger" style="flex:0 0 auto;" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
         <!-- Payment Modal -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
@@ -3171,6 +3231,9 @@ function renderPaymentDonut() {
                                 <button class="btn btn-success btn-small" onclick="openPaymentModal(${student.id})">
                                     💰 Pay
                                 </button>` : ''}
+                                <button class="btn btn-small" style="background:linear-gradient(135deg,#b87c1a,#d4a843);color:white;" onclick="openEditModal(${student.id})">
+                                    ✏️
+                                </button>
                                 <button class="btn btn-info btn-small" onclick="viewStudent(${student.id})">
                                     👁️
                                 </button>
@@ -3528,7 +3591,95 @@ ${paymentsText}
             `);
         }
 
-        function deleteStudent(studentId) {
+        // ══════════════════════════════════════════════
+        // EDIT STUDENT
+        // ══════════════════════════════════════════════
+        function openEditModal(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('editStudentId').value   = studentId;
+            document.getElementById('editReceiptNo').value   = student.receiptNo || '';
+            document.getElementById('editStudentName').value = student.name || '';
+            document.getElementById('editMobile').value      = student.mobile || '';
+            document.getElementById('editTotalFees').value   = student.totalFees || 0;
+            document.getElementById('editPaidFees').value    = student.paidFees  || 0;
+            document.getElementById('editAdmissionDate').value = student.admissionDate
+                ? new Date(student.admissionDate).toISOString().split('T')[0] : '';
+
+            // Course dropdown populate
+            const sel = document.getElementById('editCourse');
+            sel.innerHTML = '<option value="">Select Course</option>';
+            getCourses().forEach(function(c) {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                if (c === student.course) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            recalcEditBalance();
+
+            const modal = document.getElementById('editStudentModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editStudentModal').style.display = 'none';
+        }
+
+        function recalcEditBalance() {
+            const total = parseFloat(document.getElementById('editTotalFees').value) || 0;
+            const paid  = parseFloat(document.getElementById('editPaidFees').value)  || 0;
+            const bal   = Math.max(0, total - paid);
+            document.getElementById('editBalanceDisplay').textContent = '₹' + bal.toLocaleString('en-IN');
+        }
+
+        function saveEditStudent() {
+            const id      = parseInt(document.getElementById('editStudentId').value);
+            const name    = document.getElementById('editStudentName').value.trim();
+            const mobile  = document.getElementById('editMobile').value.trim();
+            const course  = document.getElementById('editCourse').value;
+            const receipt = parseInt(document.getElementById('editReceiptNo').value) || 0;
+            const total   = parseFloat(document.getElementById('editTotalFees').value) || 0;
+            const paid    = parseFloat(document.getElementById('editPaidFees').value)  || 0;
+            const admDate = document.getElementById('editAdmissionDate').value;
+
+            if (!name)   { alert('⚠️ Student Name टाका!'); return; }
+            if (!mobile || mobile.length !== 10) { alert('⚠️ Valid 10-digit Mobile Number टाका!'); return; }
+            if (!course) { alert('⚠️ Course निवडा!'); return; }
+            if (total <= 0) { alert('⚠️ Total Fees टाका!'); return; }
+            if (paid > total) { alert('⚠️ Paid Fees, Total Fees पेक्षा जास्त असू शकत नाही!'); return; }
+
+            // Duplicate receipt check (except self)
+            const dupReceipt = students.find(s => s.receiptNo === receipt && s.id !== id);
+            if (dupReceipt) { alert('⚠️ हा Receipt Number आधीच आहे!'); return; }
+
+            const idx = students.findIndex(s => s.id === id);
+            if (idx === -1) { alert('⚠️ Student सापडला नाही!'); return; }
+
+            students[idx].receiptNo     = receipt;
+            students[idx].name          = name;
+            students[idx].mobile        = mobile;
+            students[idx].course        = course;
+            students[idx].totalFees     = total;
+            students[idx].paidFees      = paid;
+            students[idx].balance       = Math.max(0, total - paid);
+            if (admDate) students[idx].admissionDate = admDate;
+
+            localStorage.setItem('icsStudents', JSON.stringify(students));
+
+            closeEditModal();
+            updateStatistics();
+            displayStudents();
+            alert('✅ Student माहिती update झाली!');
+        }
+
+        // Close modal on outside click
+        document.getElementById('editStudentModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+
+                function deleteStudent(studentId) {
             if (!confirm('⚠️ Are you sure you want to delete this student?')) return;
 
             students = students.filter(s => s.id !== studentId);
@@ -3966,7 +4117,7 @@ ${paymentsText}
 
             // ── Table ──
             const cols   = ['#', 'Receipt', 'Student Name', 'Course', 'Total', 'Paid', 'Balance', 'Status'];
-            const colWs  = [8, 16, 42, 26, 22, 22, 22, 18];
+            const colWs  = [7, 14, 55, 28, 22, 22, 20, 16];
             const tableW = colWs.reduce((a, b) => a + b, 0);
             const tableX = (W - tableW) / 2;
             const rowH   = 7;
@@ -3979,7 +4130,11 @@ ${paymentsText}
             doc.setFont(undefined, 'bold');
             doc.setFontSize(7);
             cols.forEach((col, i) => {
-                doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                if (i === 2 || i === 3) {
+                    doc.text(col, cx + 2, y + 4.8, { align: 'left' });
+                } else {
+                    doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                }
                 cx += colWs[i];
             });
             y += rowH;
@@ -4006,7 +4161,11 @@ ${paymentsText}
                     doc.setFont(undefined, 'bold');
                     doc.setFontSize(7);
                     cols.forEach((col, i) => {
-                        doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                        if (i === 2 || i === 3) {
+                            doc.text(col, cx + 2, y + 4.8, { align: 'left' });
+                        } else {
+                            doc.text(col, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                        }
                         cx += colWs[i];
                     });
                     y += rowH;
@@ -4022,8 +4181,8 @@ ${paymentsText}
                 const cells = [
                     String(idx + 1),
                     String(s.receiptNo),
-                    s.name.length > 20 ? s.name.substring(0,19) + '.' : s.name,
-                    s.course.length > 14 ? s.course.substring(0,13) + '.' : s.course,
+                    s.name,
+                    s.course.length > 18 ? s.course.substring(0,17) + '.' : s.course,
                     'Rs.' + s.totalFees.toLocaleString('en-IN'),
                     'Rs.' + s.paidFees.toLocaleString('en-IN'),
                     'Rs.' + s.balance.toLocaleString('en-IN'),
@@ -4041,7 +4200,14 @@ ${paymentsText}
                         doc.setTextColor(50, 50, 50);
                         doc.setFont(undefined, 'normal');
                     }
-                    doc.text(cell, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                    // Name column (i=2) आणि Course (i=3) — left align, बाकी center
+                    if (i === 2) {
+                        doc.text(cell, cx + 2, y + 4.8, { align: 'left' });
+                    } else if (i === 3) {
+                        doc.text(cell, cx + 2, y + 4.8, { align: 'left' });
+                    } else {
+                        doc.text(cell, cx + colWs[i] / 2, y + 4.8, { align: 'center' });
+                    }
                     cx += colWs[i];
                 });
 
